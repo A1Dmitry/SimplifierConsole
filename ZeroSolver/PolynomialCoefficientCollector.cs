@@ -175,14 +175,28 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
 
     private Rational ConvertConstantToRational(object value)
     {
+        if (value is double db)
+        {
+            // Обработка double отдельно
+            long intValue = (long)Math.Round(db);
+            if (Math.Abs(db - intValue) < 1e-12)
+            {
+                return Rational.Create(intValue);
+            }
+
+            // Нецелый double — запрещаем в полиномах
+            IsPolynomial = false;
+            return Rational.Zero; // заглушка, полином уже невалиден
+        }
+
+        // Остальные типы — через switch expression (без блоков {})
         return value switch
         {
             int i => Rational.Create(i),
             long l => Rational.Create(l),
             BigInteger bi => new Rational(bi),
             decimal d => Rational.FromDecimal(d),
-            double db => throw new NotSupportedException(
-                "Double constants not supported in exact polynomial collection"),
+            null => throw new ArgumentNullException(nameof(value)),
             _ => throw new ArgumentException($"Unsupported constant type: {value?.GetType()}")
         };
     }
@@ -191,7 +205,7 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
     {
         return (_currentPower, _currentMultiplier, new Dictionary<int, Rational>(Coefficients));
     }
-
+    
     private void RestoreState((int power, Rational mult, Dictionary<int, Rational> coeffs) state)
     {
         _currentPower = state.power;

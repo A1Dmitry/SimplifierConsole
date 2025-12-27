@@ -62,7 +62,7 @@ public readonly struct Rational : IEquatable<Rational>
     {
         return (double)Numerator / (double)Denominator;
     }
-
+    
     public static Rational operator +(Rational a, Rational b)
     {
         return new Rational(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator);
@@ -133,4 +133,45 @@ public readonly struct Rational : IEquatable<Rational>
     {
         return left.Numerator * right.Denominator >= right.Numerator * left.Denominator;
     }
+    public static implicit operator Rational(int value) => new Rational(value, BigInteger.One);
+
+    public static implicit operator Rational(long value) => new Rational(value, BigInteger.One);
+
+    public static implicit operator Rational(BigInteger value) => new Rational(value, BigInteger.One);
+
+    // === ßÂÍÀß ÊÎÍÂÅÐÑÈß Â DOUBLE (äëÿ fallback è âûâîäà) ===
+    public static explicit operator double(Rational r) => r.ToDouble();
+    
+    // === ÎÏÅÐÀÒÎÐÛ Ñ INT ===
+    public static Rational operator +(Rational a, int b) => a + new Rational(b);
+    public static Rational operator +(int a, Rational b) => new Rational(a) + b;
+
+    public static Rational operator -(Rational a, int b) => a - new Rational(b);
+    public static Rational operator -(int a, Rational b) => new Rational(a) - b;
+
+    public static Rational operator *(Rational a, int b) => a * new Rational(b);
+    public static Rational operator *(int a, Rational b) => new Rational(a) * b;
+
+    public static Rational operator /(Rational a, int b)
+    {
+        if (b == 0) throw new DivideByZeroException();
+        return a / new Rational(b);
+    }
+
+    public static Rational operator /(int a, Rational b)
+    {
+        if (b.IsZero) throw new DivideByZeroException();
+        return new Rational(a) / b;
+    }
+
+    //// === ÓÍÀÐÍÛÉ ÌÈÍÓÑ ===
+    //public static Rational operator -(Rational a) => new Rational(-a.Numerator, a.Denominator);
+
+    // === ÑÐÀÂÍÅÍÈÅ Ñ INT (åñëè íóæíî) ===
+    public static bool operator ==(Rational a, int b) => a == new Rational(b);
+    public static bool operator ==(int a, Rational b) => new Rational(a) == b;
+
+    public static bool operator !=(Rational a, int b) => !(a == b);
+    public static bool operator !=(int a, Rational b) => !(a == b);
+    
 }
