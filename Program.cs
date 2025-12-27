@@ -10,25 +10,44 @@ internal class Program
         Console.WriteLine("--- RICIS Symbolic Engine: Deep Stress Test ---\n");
 
         var testCases = new Dictionary<string, Expression<Func<double, double>>>
-        {
-            { "L1: Basic Singularity (10 / (x - 2))", x => 10 / (x - 2) },
+            {
+                { "L1: Basic Singularity (10 / (x - 2))", x => 10 / (x - 2) },
 
-            { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (x * x - 25) / (x - 5) },
+                { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (x * x - 25) / (x - 5) },
 
-            { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
+                { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
 
-            { "L3: Quadratic Denom (1 / (x^2 - 4))", x => 1 / (x * x - 4) },
+                { "L3: Quadratic Denom (1 / (x^2 - 4))", x => 1 / (x * x - 4) },
 
-            { "L5: Simple Trig (sin(x)/cos(x))", x => Math.Sin(x) / Math.Cos(x) },
+                { "L5: Simple Trig (sin(x)/cos(x))", x => Math.Sin(x) / Math.Cos(x) },
 
-            { "L6: Sinc Function (sin(x) / x)", x => Math.Sin(x) / x },
+                { "L6: Sinc Function (sin(x) / x)", x => Math.Sin(x) / x },
 
-            { "L7: Composite Trig (tan(2x))", x => Math.Sin(2 * x) / Math.Cos(2 * x) },
+                { "L7: Composite Trig (tan(2x))", x => Math.Sin(2 * x) / Math.Cos(2 * x) },
 
-            { "L8: Quartic ((x^4 - 1) / (x - 1))", x => (x * x * x * x - 1) / (x - 1) },
+                { "L8: Quartic ((x^4 - 1) / (x - 1))", x => (x * x * x * x - 1) / (x - 1) },
 
-            { "L9: Logarithm (1 / ln(x))", x => 1 / Math.Log(x) }
-        };
+                { "L9: Logarithm (1 / ln(x))", x => 1 / Math.Log(x) },
+
+
+                // Новый L10: Классический 0/0 — (e^x - 1)/x при x=0
+                { "L10: Exponential removable ((exp(x) - 1)/x)", x => (Math.Exp(x) - 1) / x },
+
+                // Новый L11: (1 - cos(x))/x² при x=0 (классика даёт 1/2 через ряд)
+                { "L11: Trig identity ((1 - cos(x))/x²)", x => (1 - Math.Cos(x)) / (x * x) },
+
+                // Новый L12: tan(x)/x при x=0 (ещё один трансцендентный 0/0)
+                { "L12: Tan(x)/x", x => Math.Tan(x) / x },
+
+                // Новый L13: Navier-Stokes вдохновлённый — упрощённая сингулярность в вязком термине
+                // Рассматриваем типичный член вида 1/Re, где Re = ρ u L / μ → при u→0 (застой) может быть сингулярность
+                // Простая модель: 1 / (x * (x + 1)) — имитирует поведение вблизи стенки (x ~ расстояние до стенки)
+                { "L13: Navier-Stokes wall analogy (1 / (x*(x+1)))", x => 1 / (x * (x + 1)) },
+
+                // Новый L14: Более жёсткий — потенциальная blow-up в нелинейном члене Навье-Стокса
+                // Упрощённая модель возможного конечного времени сингулярности: 1/(1 - x²) при x→1
+                { "L14: NS blow-up model (1 / (1 - x²))", x => 1 / (1 - x * x) }
+            };
 
         var counter = 1;
         foreach (var test in testCases)
