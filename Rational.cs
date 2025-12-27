@@ -11,7 +11,13 @@ public readonly struct Rational : IEquatable<Rational>
 
     public BigInteger Numerator { get; }
     public BigInteger Denominator { get; } // always > 0
+    public static Rational operator -(Rational a)
+    {
+        if (a.Numerator.IsZero)
+            return a; // -0 = 0
 
+        return new Rational(-a.Numerator, a.Denominator);
+    }
     public Rational(BigInteger numerator, BigInteger denominator)
     {
         if (denominator.IsZero) throw new DivideByZeroException();
@@ -68,4 +74,45 @@ public readonly struct Rational : IEquatable<Rational>
     public override string ToString() => Denominator.IsOne ? Numerator.ToString() : $"{Numerator}/{Denominator}";
 
     public bool Equals(Rational other) => Numerator.Equals(other.Numerator) && Denominator.Equals(other.Denominator);
+
+  
+    public static Rational Floor(Rational r)
+    {
+        BigInteger floored = r.Numerator / r.Denominator;
+        if (r.Numerator < 0 && (r.Numerator % r.Denominator != 0))
+            floored -= BigInteger.One;
+        return new Rational(floored);
+    }
+
+    public static bool operator <(Rational left, Rational right)
+    {
+        return left.Numerator * right.Denominator < right.Numerator * left.Denominator;
+    }
+    public static bool operator ==(Rational left, Rational right)
+    {
+        return left.Numerator * right.Denominator == right.Numerator * left.Denominator;
+    }
+
+    public static bool operator !=(Rational left, Rational right)
+    {
+        return !(left == right);
+    }
+
+    
+
+   
+    public static bool operator >(Rational left, Rational right)
+    {
+        return left.Numerator * right.Denominator > right.Numerator * left.Denominator;
+    }
+
+    public static bool operator <=(Rational left, Rational right)
+    {
+        return left.Numerator * right.Denominator <= right.Numerator * left.Denominator;
+    }
+
+    public static bool operator >=(Rational left, Rational right)
+    {
+        return left.Numerator * right.Denominator >= right.Numerator * left.Denominator;
+    }
 }

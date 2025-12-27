@@ -1,4 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using SimplifierConsole;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 
 public static class ExpressionSimplifier
 {
@@ -43,34 +47,59 @@ public static class ExpressionSimplifier
         var numerator = b.Left;
         var denominator = b.Right;
 
-        // 1. Ищем корни знаменателя
+        var paramVisitor = new ParameterFinderVisitor();
+        paramVisitor.Visit(b);
+        var paramExpr = paramVisitor.Parameter;
+        if (paramExpr == null) return b;
+
         var roots = SingularitySolver.SolveRoot(denominator);
-        var foundSingularities = new List<InfinityExpression>();
 
         if (roots.Count == 0) return b;
 
+        var singularities = new List<Expression>();
+
         foreach (var root in roots)
         {
-            var (paramExpr, rootValue) = root;
-            var numValueAtRoot = EvaluateAtPoint(numerator, paramExpr.Name, rootValue);
+            ParameterExpression param = root.Item1;
+            double rootValue = root.Item2;
 
-            // СЛУЧАЙ А: 0 / 0 -> Устранимая сингулярность
+            double numValueAtRoot = EvaluateAtPoint(numerator, param.Name, rootValue);
+
             if (Math.Abs(numValueAtRoot) < 1e-10)
             {
-                var simplified = PolynomialDivider.TryDivide(numerator, denominator);
-                if (simplified != null) return new BridgedExpression(simplified, paramExpr, rootValue);
+                var simplified = PolynomialLongDivision.TryDivide(numerator, denominator, param);
+                if (simplified != null)
+                {
+                    singularities.Add(new BridgedExpression(simplified, param, rootValue));
+                }
+                else
+                {
+                    singularities.Add(new InfinityExpression(numerator, param, rootValue));
+                }
             }
-            // СЛУЧАЙ Б: N / 0 -> Бесконечность
             else
             {
-                foundSingularities.Add(new InfinityExpression(numerator, paramExpr, rootValue));
+                singularities.Add(new InfinityExpression(numerator, param, rootValue));
             }
         }
 
-        if (foundSingularities.Count == 1) return foundSingularities[0];
-        if (foundSingularities.Count > 1) return new SingularityMonolithExpression(foundSingularities);
+        return singularities.Count switch
+        {
+            0 => b,
+            1 => singularities[0],
+            _ => new SingularityMonolithExpression(singularities.OfType<InfinityExpression>().ToList())
+        };
+    }
 
-        return b;
+    private class ParameterFinderVisitor : ExpressionVisitor
+    {
+        public ParameterExpression Parameter { get; private set; }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            Parameter ??= node;
+            return base.VisitParameter(node);
+        }
     }
 
     private static double EvaluateAtPoint(Expression expr, string paramName, double value)
@@ -82,7 +111,8 @@ public static class ExpressionSimplifier
     }
 }
 
-// --- РЕШАТЕЛЬ (SOLVER) ---
+// === ВОССТАНОВЛЕННЫЙ SINGULARITYSOLVER ===
+
 public static class SingularitySolver
 {
     public static List<(ParameterExpression, double)> SolveRoot(Expression expr)
@@ -179,7 +209,6 @@ public static class PolynomialParser
             if (node.NodeType == ExpressionType.Multiply)
             {
                 var bin = (BinaryExpression)node;
-                // ИСПРАВЛЕНО: Используем else if для предотвращения конфликта имен
                 if (bin.Left is ParameterExpression pL1 && bin.Right is ParameterExpression pR1)
                 {
                     if (Variable == null) Variable = pL1;
