@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Text;
 
-class Program
+internal class Program
 {
-    static void Main()
+    private static void Main()
     {
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("--- RICIS Symbolic Engine: Deep Stress Test ---\n");
@@ -54,7 +51,7 @@ class Program
             { "L9: Logarithm (1 / ln(x))", x => 1 / Math.Log(x) }
         };
 
-        int counter = 1;
+        var counter = 1;
         foreach (var test in testCases)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -67,7 +64,7 @@ class Program
                 var result = ExpressionSimplifier.Simplify(test.Value);
 
                 // 2. Проверка на изменения
-                bool isUnchanged = result.ToString() == test.Value.ToString();
+                var isUnchanged = result.ToString() == test.Value.ToString();
 
                 Console.WriteLine($"Input:  {test.Value}");
 
@@ -85,24 +82,28 @@ class Program
                     if (result is InfinityExpression || result is SingularityMonolithExpression)
                     {
                         // Хак для демонстрации: берем первую сингулярность
-                        InfinityExpression inf = result as InfinityExpression;
+                        var inf = result as InfinityExpression;
                         if (result is SingularityMonolithExpression mono) inf = mono.Singularities[0];
 
                         if (inf != null)
                         {
                             // Пытаемся вычислить числитель для знака
-                            double numVal = 1.0;
+                            var numVal = 1.0;
                             try
                             {
                                 // Подставляем точку разрыва в числитель
                                 var visitor = new SubstitutionVisitor(inf.Variable.Name, inf.SingularityValue);
                                 var evalExpr = visitor.Visit(inf.Numerator);
-                                numVal = Expression.Lambda<Func<double>>(Expression.Convert(evalExpr, typeof(double))).Compile()();
+                                numVal = Expression.Lambda<Func<double>>(Expression.Convert(evalExpr, typeof(double)))
+                                    .Compile()();
                             }
-                            catch { }
+                            catch
+                            {
+                            }
 
                             // Создаем временную бесконечность с числом для конвертера
-                            var tempInf = new InfinityExpression(Expression.Constant(numVal), inf.Variable, inf.SingularityValue);
+                            var tempInf = new InfinityExpression(Expression.Constant(numVal), inf.Variable,
+                                inf.SingularityValue);
 
                             Console.ForegroundColor = ConsoleColor.Magenta;
                             Console.WriteLine($"Polar:  {PolarConverter.ToPolar(tempInf)}");
@@ -115,6 +116,7 @@ class Program
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error: {ex.Message}");
             }
+
             Console.ResetColor();
             Console.WriteLine(new string('-', 50));
             counter++;

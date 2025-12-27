@@ -52,16 +52,13 @@ public static class ExpressionSimplifier
         foreach (var root in roots)
         {
             var (paramExpr, rootValue) = root;
-            double numValueAtRoot = EvaluateAtPoint(numerator, paramExpr.Name, rootValue);
+            var numValueAtRoot = EvaluateAtPoint(numerator, paramExpr.Name, rootValue);
 
             // СЛУЧАЙ А: 0 / 0 -> Устранимая сингулярность
             if (Math.Abs(numValueAtRoot) < 1e-10)
             {
                 var simplified = PolynomialDivider.TryDivide(numerator, denominator);
-                if (simplified != null)
-                {
-                    return new BridgedExpression(simplified, paramExpr, rootValue);
-                }
+                if (simplified != null) return new BridgedExpression(simplified, paramExpr, rootValue);
             }
             // СЛУЧАЙ Б: N / 0 -> Бесконечность
             else
@@ -103,12 +100,12 @@ public static class SingularitySolver
             }
             else // Квадратное
             {
-                double D = b * b - 4 * a * c;
+                var D = b * b - 4 * a * c;
                 if (D >= 0)
                 {
-                    double sqrtD = Math.Sqrt(D);
-                    double x1 = (-b + sqrtD) / (2 * a);
-                    double x2 = (-b - sqrtD) / (2 * a);
+                    var sqrtD = Math.Sqrt(D);
+                    var x1 = (-b + sqrtD) / (2 * a);
+                    var x2 = (-b - sqrtD) / (2 * a);
                     roots.Add((param, x1));
                     if (Math.Abs(x1 - x2) > 1e-10) roots.Add((param, x2));
                 }
@@ -131,12 +128,14 @@ public static class TrigSolver
 {
     public static (ParameterExpression, double)? Solve(Expression expr)
     {
-        if (expr is MethodCallExpression call && call.Arguments.Count > 0 && call.Arguments[0] is ParameterExpression param)
+        if (expr is MethodCallExpression call && call.Arguments.Count > 0 &&
+            call.Arguments[0] is ParameterExpression param)
         {
             if (call.Method.Name == "Cos") return (param, Math.PI / 2.0);
             if (call.Method.Name == "Sin") return (param, 0.0);
             if (call.Method.Name == "Tan") return (param, 0.0);
         }
+
         return null;
     }
 }
@@ -155,11 +154,11 @@ public static class PolynomialParser
 
     private class CoefficientsVisitor : ExpressionVisitor
     {
-        public ParameterExpression Variable { get; private set; }
-        public double A { get; private set; } = 0;
-        public double B { get; private set; } = 0;
-        public double C { get; private set; } = 0;
         private double _currentSign = 1.0;
+        public ParameterExpression Variable { get; private set; }
+        public double A { get; private set; }
+        public double B { get; private set; }
+        public double C { get; private set; }
 
         public override Expression Visit(Expression node)
         {
@@ -187,13 +186,15 @@ public static class PolynomialParser
                     A += 1.0 * _currentSign;
                     return node;
                 }
-                else if (bin.Left is ConstantExpression cL2 && bin.Right is ParameterExpression pR2)
+
+                if (bin.Left is ConstantExpression cL2 && bin.Right is ParameterExpression pR2)
                 {
                     if (Variable == null) Variable = pR2;
                     B += Convert.ToDouble(cL2.Value) * _currentSign;
                     return node;
                 }
-                else if (bin.Left is ParameterExpression pL3 && bin.Right is ConstantExpression cR3)
+
+                if (bin.Left is ParameterExpression pL3 && bin.Right is ConstantExpression cR3)
                 {
                     if (Variable == null) Variable = pL3;
                     B += Convert.ToDouble(cR3.Value) * _currentSign;
@@ -205,7 +206,7 @@ public static class PolynomialParser
             {
                 var bin = (BinaryExpression)node;
                 Visit(bin.Left);
-                double savedSign = _currentSign;
+                var savedSign = _currentSign;
                 if (node.NodeType == ExpressionType.Subtract) _currentSign *= -1;
                 Visit(bin.Right);
                 _currentSign = savedSign;
