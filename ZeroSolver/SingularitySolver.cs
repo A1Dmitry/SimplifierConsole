@@ -4,31 +4,52 @@ public static class SingularitySolver
 {
     public static List<(ParameterExpression, double)> SolveRoot(Expression expr, ParameterExpression param)
     {
-        var roots = new List<(ParameterExpression, double)>();
+        
 
         // 1. Полиномы (квадратичные и линейные)
+        var roots = new List<(ParameterExpression, double)>();
+
         var poly = PolynomialParser.ParseQuadratic(expr);
         if (poly.HasValue)
         {
             var (p, a, b, c) = poly.Value;
+
+            // Ключевое место для отладки
+            Console.WriteLine($"[RICIS DEBUG] Parsed quadratic for '{expr}': " +
+                              $"a = {a:R}, b = {b:R}, c = {c:R} (param: {p.Name})");
+
             if (p == param)
             {
-                if (Math.Abs(a) < 1e-10) // линейное: bx + c = 0
+                if (a == 0.0)
                 {
-                    if (Math.Abs(b) > 1e-10)
-                        roots.Add((param, -c / b));
+                    Console.WriteLine("[RICIS DEBUG] Linear case");
+                    if (b != 0.0)
+                    {
+                        double root = -c / b;
+                        Console.WriteLine($"[RICIS DEBUG] Linear root: {root:R}");
+                        roots.Add((param, root));
+                    }
                 }
-                else // квадратичное
+                else
                 {
+                    Console.WriteLine("[RICIS DEBUG] Quadratic case");
                     var D = b * b - 4 * a * c;
-                    if (D >= 0)
+                    Console.WriteLine($"[RICIS DEBUG] Discriminant D = {D:R}");
+
+                    if (D > 0)
                     {
                         var sqrtD = Math.Sqrt(D);
-                        var r1 = (-b + sqrtD) / (2 * a);
-                        var r2 = (-b - sqrtD) / (2 * a);
+                        double r1 = (-b + sqrtD) / (2 * a);
+                        double r2 = (-b - sqrtD) / (2 * a);
+                        Console.WriteLine($"[RICIS DEBUG] Roots: {r1:R}, {r2:R}");
                         roots.Add((param, r1));
-                        if (Math.Abs(r1 - r2) > 1e-12)
-                            roots.Add((param, r2));
+                        roots.Add((param, r2));
+                    }
+                    else if (D == 0.0)
+                    {
+                        double root = -b / (2 * a);
+                        Console.WriteLine($"[RICIS DEBUG] Double root: {root:R}");
+                        roots.Add((param, root));
                     }
                 }
             }

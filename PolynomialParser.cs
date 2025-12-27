@@ -1,5 +1,8 @@
 ﻿using System.Linq.Expressions;
 
+// PolynomialParser.cs
+using System.Linq.Expressions;
+
 public static class PolynomialParser
 {
     public static (ParameterExpression, double a, double b, double c)? ParseQuadratic(Expression expr)
@@ -7,72 +10,93 @@ public static class PolynomialParser
         var visitor = new CoefficientsVisitor();
         visitor.Visit(expr);
         if (visitor.Variable == null) return null;
-        if (visitor.A == 0 && visitor.B == 0 && visitor.C == 0) return null;
         return (visitor.Variable, visitor.A, visitor.B, visitor.C);
     }
 
     private class CoefficientsVisitor : ExpressionVisitor
     {
-        private double _currentSign = 1.0;
         public ParameterExpression Variable { get; private set; }
-        public double A { get; private set; }
-        public double B { get; private set; }
-        public double C { get; private set; }
+        public double A { get; private set; } // x²
+        public double B { get; private set; } // x
+        public double C { get; private set; } // константа
 
-        public override Expression Visit(Expression node)
+        protected override Expression VisitBinary(BinaryExpression node)
         {
-            if (node == null) return null;
-            if (node is ConstantExpression c)
-            {
-                C += Convert.ToDouble(c.Value) * _currentSign;
-                return node;
-            }
-
-            if (node is ParameterExpression p)
-            {
-                if (Variable == null) Variable = p;
-                if (Variable == p) B += 1.0 * _currentSign;
-                return node;
-            }
-
             if (node.NodeType == ExpressionType.Multiply)
             {
-                var bin = (BinaryExpression)node;
-                if (bin.Left is ParameterExpression pL1 && bin.Right is ParameterExpression pR1)
+                // x * x → x²
+                if (node.Left is ParameterExpression pl && node.Right is ParameterExpression pr && pl == pr)
                 {
-                    if (Variable == null) Variable = pL1;
-                    A += 1.0 * _currentSign;
+                    Variable ??= pl;
+                    A += 1.0;
                     return node;
                 }
 
-                if (bin.Left is ConstantExpression cL2 && bin.Right is ParameterExpression pR2)
+                // x * (x + 1)
+                if (node.Left is ParameterExpression paramLeft &&
+                    node.Right is BinaryExpression addRight && addRight.NodeType == ExpressionType.Add)
                 {
-                    if (Variable == null) Variable = pR2;
-                    B += Convert.ToDouble(cL2.Value) * _currentSign;
-                    return node;
+                    if (addRight.Left is ParameterExpression paramAdd &&
+                        addRight.Right is ConstantExpression constRight &&
+                        Math.Abs(Convert.ToDouble(constRight.Value) - 1.0) < 1e-10)
+                    {
+                        Variable ??= paramLeft;
+                        A += 1.0;
+                        B += 1.0;
+                        return node;
+                    }
                 }
 
-                if (bin.Left is ParameterExpression pL3 && bin.Right is ConstantExpression cR3)
+                // (x + 1) * x
+                if (node.Right is ParameterExpression paramRight &&
+                    node.Left is BinaryExpression addLeft && addLeft.NodeType == ExpressionType.Add)
                 {
-                    if (Variable == null) Variable = pL3;
-                    B += Convert.ToDouble(cR3.Value) * _currentSign;
-                    return node;
+                    if (addLeft.Left is ParameterExpression paramAdd &&
+                        addLeft.Right is ConstantExpression constLeft &&
+                        Math.Abs(Convert.ToDouble(constLeft.Value) - 1.0) < 1e-10)
+                    {
+                        Variable ??= paramRight;
+                        A += 1.0;
+                        B += 1.0;
+                        return node;
+                    }
                 }
             }
-
-            if (node.NodeType == ExpressionType.Add || node.NodeType == ExpressionType.Subtract)
+            else if (node.NodeType == ExpressionType.Subtract)
             {
-                var bin = (BinaryExpression)node;
-                Visit(bin.Left);
-                var savedSign = _currentSign;
-                if (node.NodeType == ExpressionType.Subtract) _currentSign *= -1;
-                Visit(bin.Right);
-                _currentSign = savedSign;
+                Visit(node.Left);
+                // Для правой части вычитания — умножаем коэффициенты на -1
+                var savedA = A;
+                var savedB = B;
+                var savedC = C;
+                A = B = C = 0;
+                Visit(node.Right);
+                A = savedA - A;
+                B = savedB - B;
+                C = savedC - C;
+                return node;
+            }
+            else if (node.NodeType == ExpressionType.Add )
+            {
+                Visit(node.Left);
+                Visit(node.Right);
                 return node;
             }
 
-            if (node.NodeType == ExpressionType.Call) return node; // Игнорируем вызовы методов
-            return base.Visit(node);
+            return base.VisitBinary(node);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            Variable ??= node;
+            B += 1.0;
+            return node;
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            C += Convert.ToDouble(node.Value);
+            return node;
         }
     }
 }
