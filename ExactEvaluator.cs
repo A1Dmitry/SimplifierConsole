@@ -1,15 +1,12 @@
-using Math = System.Math;
-
-
-using System;
 using System.Linq.Expressions;
 using System.Numerics;
+using Math = System.Math;
 
 /// <summary>
-/// ѕытаетс€ точно (рационально) вычислить выражение после подстановки.
-/// ѕоддерживает: Constant (int,long,decimal), Parameter замен€етс€ на заданное рациональное значение,
-/// бинарные операции + - * /, унарный -, простые правила дл€ Math.Sin/Cos/Tan при аргументе == 0.
-/// ≈сли невозможно оценить точно Ч возвращает false.
+///     ѕытаетс€ точно (рационально) вычислить выражение после подстановки.
+///     ѕоддерживает: Constant (int,long,decimal), Parameter замен€етс€ на заданное рациональное значение,
+///     бинарные операции + - * /, унарный -, простые правила дл€ Math.Sin/Cos/Tan при аргументе == 0.
+///     ≈сли невозможно оценить точно Ч возвращает false.
 /// </summary>
 public static class ExactEvaluator
 {
@@ -44,7 +41,11 @@ public static class ExactEvaluator
         public override Expression Visit(Expression node)
         {
             if (!_ok) return node;
-            if (node == null) { _ok = false; return node; }
+            if (node == null)
+            {
+                _ok = false;
+                return node;
+            }
 
             switch (node.NodeType)
             {
@@ -75,18 +76,33 @@ public static class ExactEvaluator
 
         private void VisitConstant(ConstantExpression c)
         {
-            object v = c.Value;
-            if (v is int i) _last = Rational.Create(i);
-            else if (v is long l) _last = Rational.Create(l);
-            else if (v is decimal dec) _last = Rational.FromDecimal(dec);
-            else if (v is BigInteger bi) _last = new Rational(bi);
+            var v = c.Value;
+            if (v is int i)
+            {
+                _last = Rational.Create(i);
+            }
+            else if (v is long l)
+            {
+                _last = Rational.Create(l);
+            }
+            else if (v is decimal dec)
+            {
+                _last = Rational.FromDecimal(dec);
+            }
+            else if (v is BigInteger bi)
+            {
+                _last = new Rational(bi);
+            }
             else if (v is double d)
             {
                 if (d == Math.Truncate(d))
                     _last = Rational.Create((long)d);
                 else _ok = false;
             }
-            else _ok = false;
+            else
+            {
+                _ok = false;
+            }
         }
 
         private void VisitParameter(ParameterExpression p)
@@ -132,7 +148,15 @@ public static class ExactEvaluator
                     _last = left * right;
                     break;
                 case ExpressionType.Divide:
-                    try { _last = left / right; } catch { _ok = false; }
+                    try
+                    {
+                        _last = left / right;
+                    }
+                    catch
+                    {
+                        _ok = false;
+                    }
+
                     break;
                 default:
                     _ok = false;
@@ -148,7 +172,6 @@ public static class ExactEvaluator
                 Visit(call.Arguments[0]);
                 if (!_ok) return;
                 if (_last.IsZero)
-                {
                     switch (call.Method.Name)
                     {
                         case "Sin":
@@ -159,7 +182,6 @@ public static class ExactEvaluator
                             _last = Rational.One;
                             return;
                     }
-                }
             }
 
             _ok = false;

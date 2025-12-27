@@ -1,8 +1,5 @@
-﻿using SimplifierConsole;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using SimplifierConsole;
 
 public static class ExpressionSimplifier
 {
@@ -60,22 +57,18 @@ public static class ExpressionSimplifier
 
         foreach (var root in roots)
         {
-            ParameterExpression param = root.Item1;
-            double rootValue = root.Item2;
+            var param = root.Item1;
+            var rootValue = root.Item2;
 
-            double numValueAtRoot = EvaluateAtPoint(numerator, param.Name, rootValue);
+            var numValueAtRoot = EvaluateAtPoint(numerator, param.Name, rootValue);
 
             if (Math.Abs(numValueAtRoot) < 1e-10)
             {
                 var simplified = PolynomialLongDivision.TryDivide(numerator, denominator, param);
                 if (simplified != null)
-                {
                     singularities.Add(new BridgedExpression(simplified, param, rootValue));
-                }
                 else
-                {
                     singularities.Add(new InfinityExpression(numerator, param, rootValue));
-                }
             }
             else
             {
@@ -91,6 +84,14 @@ public static class ExpressionSimplifier
         };
     }
 
+    private static double EvaluateAtPoint(Expression expr, string paramName, double value)
+    {
+        var visitor = new SubstitutionVisitor(paramName, value);
+        var newExpr = visitor.Visit(expr);
+        var lambda = Expression.Lambda<Func<double>>(Expression.Convert(newExpr, typeof(double)));
+        return lambda.Compile()();
+    }
+
     private class ParameterFinderVisitor : ExpressionVisitor
     {
         public ParameterExpression Parameter { get; private set; }
@@ -100,14 +101,6 @@ public static class ExpressionSimplifier
             Parameter ??= node;
             return base.VisitParameter(node);
         }
-    }
-
-    private static double EvaluateAtPoint(Expression expr, string paramName, double value)
-    {
-        var visitor = new SubstitutionVisitor(paramName, value);
-        var newExpr = visitor.Visit(expr);
-        var lambda = Expression.Lambda<Func<double>>(Expression.Convert(newExpr, typeof(double)));
-        return lambda.Compile()();
     }
 }
 

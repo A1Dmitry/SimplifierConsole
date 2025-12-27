@@ -13,11 +13,11 @@ internal class RationalRootTheorem
         var candidates = new HashSet<Rational>();
 
         foreach (var p in pFactors)
-            foreach (var q in qFactors)
-            {
-                candidates.Add(new Rational(p, q));
-                candidates.Add(new Rational(BigInteger.Negate(p), q));
-            }
+        foreach (var q in qFactors)
+        {
+            candidates.Add(new Rational(p, q));
+            candidates.Add(new Rational(BigInteger.Negate(p), q));
+        }
 
         return candidates.OrderBy(r => r.ToDouble()).ToList();
     }
@@ -28,13 +28,12 @@ internal class RationalRootTheorem
         var factors = new List<BigInteger> { BigInteger.One };
 
         for (BigInteger i = 2; i * i <= n; i++)
-        {
             if (n % i == 0)
             {
                 factors.Add(i);
                 while (n % i == 0) n /= i;
             }
-        }
+
         if (n > 1) factors.Add(n);
 
         return factors;

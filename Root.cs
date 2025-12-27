@@ -3,13 +3,13 @@
 namespace SimplifierConsole;
 
 /// <summary>
-/// Представление одного точного корня
+///     Представление одного точного корня
 /// </summary>
 public readonly struct Root : IEquatable<Root>
 {
     public ParameterExpression Parameter { get; }
-    public Rational? RationalValue { get; }     // если корень рациональный
-    public double DoubleValue { get; }          // всегда есть (для подстановки)
+    public Rational? RationalValue { get; } // если корень рациональный
+    public double DoubleValue { get; } // всегда есть (для подстановки)
 
     public Root(ParameterExpression param, Rational value)
     {
@@ -31,7 +31,15 @@ public readonly struct Root : IEquatable<Root>
                Math.Abs(DoubleValue - other.DoubleValue) < 1e-12;
     }
 
-    public override int GetHashCode() => HashCode.Combine(Parameter, DoubleValue);
-    public override string ToString() =>
-        RationalValue.HasValue ? $"{Parameter.Name} = {RationalValue.Value}" : $"{Parameter.Name} ≈ {DoubleValue:R}";
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Parameter, DoubleValue);
+    }
+
+    public override string ToString()
+    {
+        return RationalValue.HasValue
+            ? $"{Parameter.Name} = {RationalValue.Value}"
+            : $"{Parameter.Name} ≈ {DoubleValue:R}";
+    }
 }

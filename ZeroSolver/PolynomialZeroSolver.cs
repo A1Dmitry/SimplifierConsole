@@ -8,7 +8,8 @@ public static class PolynomialZeroSolver
         var collector = new PolynomialCoefficientCollector(param);
         collector.Visit(expr);
 
-        if (!collector.IsPolynomial || collector.Coefficients.Count == 0 || collector.Coefficients.All(c => c.Value.IsZero))
+        if (!collector.IsPolynomial || collector.Coefficients.Count == 0 ||
+            collector.Coefficients.All(c => c.Value.IsZero))
             return new List<Root>();
 
         var degree = collector.Coefficients.Keys.Max();
@@ -20,12 +21,8 @@ public static class PolynomialZeroSolver
         var roots = new List<Root>();
 
         foreach (var candidate in possibleRationals)
-        {
             if (ExactEvaluator.TryEvaluate(expr, param.Name, candidate, out var result) && result.IsZero)
-            {
                 roots.Add(new Root(param, candidate));
-            }
-        }
 
         return roots;
     }

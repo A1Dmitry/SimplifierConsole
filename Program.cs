@@ -126,8 +126,8 @@ internal class Program
 }
 
 /// <summary>
-/// Представление типового нуля 0_F — ноль с индексом (Expression) и типом индекса (RicisType).
-/// Теперь класс обобщённый: TValue задаёт CLR‑тип значения (как <double>, <int> и т.п.).
+///     Представление типового нуля 0_F — ноль с индексом (Expression) и типом индекса (RicisType).
+///     Теперь класс обобщённый: TValue задаёт CLR‑тип значения (как <double>, <int> и т.п.).
 /// </summary>
 public sealed class TypedZeroExpression<TValue> : Expression
 {

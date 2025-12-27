@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Numerics;
 
 public class PolynomialCoefficientCollector : ExpressionVisitor
 {
     private readonly ParameterExpression _parameter;
-    private int _currentPower = -1;         // Текущая степень (при умножении)
     private Rational _currentMultiplier = Rational.One; // Текущий коэффициент перед параметром
-
-    public bool IsPolynomial { get; private set; } = true;
-    public Dictionary<int, Rational> Coefficients { get; } = new Dictionary<int, Rational>();
+    private int _currentPower = -1; // Текущая степень (при умножении)
 
     public PolynomialCoefficientCollector(ParameterExpression parameterExpression)
     {
         _parameter = parameterExpression ?? throw new ArgumentNullException(nameof(parameterExpression));
     }
+
+    public bool IsPolynomial { get; private set; } = true;
+    public Dictionary<int, Rational> Coefficients { get; } = new();
 
     public void Visit(Expression expr)
     {
@@ -48,18 +46,14 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
-        Rational value = ConvertConstantToRational(node.Value);
+        var value = ConvertConstantToRational(node.Value);
 
         if (_currentPower < 0)
-        {
             // Константа сама по себе — степень 0
             AddToCoefficients(0, value);
-        }
         else
-        {
             // Константа умножается на текущую степень параметра
             AddToCoefficients(_currentPower, _currentMultiplier * value);
-        }
 
         return node;
     }
@@ -129,12 +123,12 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
         Coefficients.Clear();
 
         foreach (var left in leftCoeffs)
-            foreach (var right in rightCoeffs)
-            {
-                int newPower = left.Key + right.Key;
-                Rational newCoeff = left.Value * right.Value;
-                AddToCoefficients(newPower, newCoeff);
-            }
+        foreach (var right in rightCoeffs)
+        {
+            var newPower = left.Key + right.Key;
+            var newCoeff = left.Value * right.Value;
+            AddToCoefficients(newPower, newCoeff);
+        }
 
         // Сбрасываем временные состояния
         _currentPower = -1;
@@ -187,7 +181,8 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
             long l => Rational.Create(l),
             BigInteger bi => new Rational(bi),
             decimal d => Rational.FromDecimal(d),
-            double db => throw new NotSupportedException("Double constants not supported in exact polynomial collection"),
+            double db => throw new NotSupportedException(
+                "Double constants not supported in exact polynomial collection"),
             _ => throw new ArgumentException($"Unsupported constant type: {value?.GetType()}")
         };
     }

@@ -1,5 +1,5 @@
-﻿using SimplifierConsole;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using SimplifierConsole;
 
 public static class TrigonometricZeroSolver
 {
@@ -17,24 +17,24 @@ public static class TrigonometricZeroSolver
             var linear = LinearExtractor.Extract(arg, param);
             if (linear == null) return roots;
 
-            double multiplier = linear.Value.multiplier;
-            double offset = linear.Value.offset;
+            var multiplier = linear.Value.multiplier;
+            var offset = linear.Value.offset;
 
-            double baseAngle = call.Method.Name switch
+            var baseAngle = call.Method.Name switch
             {
-                "Sin" => 0.0 + Math.PI,           // sin(θ) = 0 ⇒ θ = kπ (главное — π)
-                "Cos" => Math.PI / 2,             // cos(θ) = 0 ⇒ θ = π/2 + kπ
-                "Tan" => Math.PI,                 // tan(θ) = 0 ⇒ θ = kπ (но tan имеет полюса!)
+                "Sin" => 0.0 + Math.PI, // sin(θ) = 0 ⇒ θ = kπ (главное — π)
+                "Cos" => Math.PI / 2, // cos(θ) = 0 ⇒ θ = π/2 + kπ
+                "Tan" => Math.PI, // tan(θ) = 0 ⇒ θ = kπ (но tan имеет полюса!)
                 _ => double.NaN
             };
 
             if (double.IsNaN(baseAngle)) return roots;
 
             // Главное значение (k=0)
-            double theta = baseAngle - offset;
+            var theta = baseAngle - offset;
             if (Math.Abs(multiplier) > 1e-10)
             {
-                double x = theta / multiplier;
+                var x = theta / multiplier;
                 roots.Add(new Root(param, x));
             }
         }

@@ -13,10 +13,13 @@ internal static class LinearExtractor
     private class LinearVisitor : ExpressionVisitor
     {
         private readonly ParameterExpression _param;
-        public bool Success = false;
         public (double multiplier, double offset) Result;
+        public bool Success;
 
-        public LinearVisitor(ParameterExpression param) => _param = param;
+        public LinearVisitor(ParameterExpression param)
+        {
+            _param = param;
+        }
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
@@ -34,14 +37,12 @@ internal static class LinearExtractor
             }
 
             if (node.NodeType == ExpressionType.Multiply)
-            {
                 if (node.Left is ConstantExpression c && node.Right is ParameterExpression p && p == _param)
                 {
                     Success = true;
                     Result = (Convert.ToDouble(c.Value), 0);
                     return node;
                 }
-            }
 
             return base.VisitBinary(node);
         }

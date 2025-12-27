@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 public readonly struct CircleSectors
 {
@@ -8,7 +7,7 @@ public readonly struct CircleSectors
     private CircleSectors(Rational fraction)
     {
         // Используем метод Floor из Rational (добавь его, если нет)
-        Rational floor = Rational.Floor(fraction);
+        var floor = Rational.Floor(fraction);
         Fraction = fraction - floor;
         if (Fraction < Rational.Zero)
             Fraction += Rational.One;
@@ -19,10 +18,10 @@ public readonly struct CircleSectors
         if (double.IsNaN(radians) || double.IsInfinity(radians))
             throw new ArgumentException("Invalid angle");
 
-        double normalized = ((radians % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-        double fractionDouble = normalized / (2 * Math.PI);
+        var normalized = (radians % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        var fractionDouble = normalized / (2 * Math.PI);
 
-        Rational best = BestRationalApproximation(fractionDouble, maxDenominator);
+        var best = BestRationalApproximation(fractionDouble, maxDenominator);
 
         return new CircleSectors(best);
     }
@@ -32,32 +31,32 @@ public readonly struct CircleSectors
         if (Math.Abs(x) < 1e-12) return Rational.Zero;
         if (Math.Abs(x - 1.0) < 1e-12) return Rational.One;
 
-        double value = Math.Abs(x);
-        BigInteger a0 = (BigInteger)Math.Floor(value);
-        double f = value - (double)a0;
+        var value = Math.Abs(x);
+        var a0 = (BigInteger)Math.Floor(value);
+        var f = value - (double)a0;
 
         BigInteger p0 = a0, q0 = BigInteger.One;
         BigInteger p1 = BigInteger.One, q1 = BigInteger.Zero;
 
-        BigInteger pBest = p0;
-        BigInteger qBest = q0;
+        var pBest = p0;
+        var qBest = q0;
 
-        double bestError = Math.Abs(value - (double)pBest / (double)qBest);
+        var bestError = Math.Abs(value - (double)pBest / (double)qBest);
 
         while (q0 <= maxDenominator)
         {
             if (Math.Abs(f) < 1e-12) break;
 
-            double reciprocal = 1.0 / f;
-            BigInteger a = (BigInteger)Math.Floor(reciprocal);
+            var reciprocal = 1.0 / f;
+            var a = (BigInteger)Math.Floor(reciprocal);
 
-            BigInteger pNew = a * p0 + p1;
-            BigInteger qNew = a * q0 + q1;
+            var pNew = a * p0 + p1;
+            var qNew = a * q0 + q1;
 
             if (qNew > maxDenominator) break;
 
-            double approx = (double)pNew / (double)qNew;
-            double error = Math.Abs(value - approx);
+            var approx = (double)pNew / (double)qNew;
+            var error = Math.Abs(value - approx);
 
             if (error < bestError)
             {
@@ -66,13 +65,15 @@ public readonly struct CircleSectors
                 qBest = qNew;
             }
 
-            p1 = p0; q1 = q0;
-            p0 = pNew; q0 = qNew;
+            p1 = p0;
+            q1 = q0;
+            p0 = pNew;
+            q0 = qNew;
 
             f = reciprocal - (double)a;
         }
 
-        Rational result = new Rational(pBest, qBest);
+        var result = new Rational(pBest, qBest);
         return x < 0 ? -result : result;
     }
 
@@ -80,9 +81,9 @@ public readonly struct CircleSectors
     {
         if (totalSectors <= 0) throw new ArgumentOutOfRangeException(nameof(totalSectors));
 
-        Rational sectorsPassed = Fraction * Rational.Create(totalSectors);
-        Rational whole = Rational.Floor(sectorsPassed);
-        Rational frac = sectorsPassed - whole;
+        var sectorsPassed = Fraction * Rational.Create(totalSectors);
+        var whole = Rational.Floor(sectorsPassed);
+        var frac = sectorsPassed - whole;
 
         if (frac.IsZero)
         {
