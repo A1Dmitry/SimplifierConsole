@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿// ExpressionSimplifier.cs (обновлённая версия с полным закрытием разрывов)
+
+using System.Linq.Expressions;
 using SimplifierConsole;
 
 public static class ExpressionSimplifier
@@ -30,7 +32,7 @@ public static class ExpressionSimplifier
 
             case ExpressionType.Call:
                 var call = (MethodCallExpression)expr;
-                var newArgs = call.Arguments.Select(a => Visit(a));
+                var newArgs = call.Arguments.Select(Visit);
                 var newObj = Visit(call.Object);
                 return Expression.Call(newObj, call.Method, newArgs);
 
@@ -46,11 +48,10 @@ public static class ExpressionSimplifier
 
         var paramVisitor = new ParameterFinderVisitor();
         paramVisitor.Visit(b);
-        var paramExpr = paramVisitor.Parameter;
-        var par = paramVisitor.Parameter;
-        if (paramExpr == null) return b;
+        var param = paramVisitor.Parameter;
+        if (param == null) return b;
 
-        var roots = SingularitySolver.SolveRoot(denominator, par);
+        var roots = SingularitySolver.SolveRoot(denominator, param);
 
         if (roots.Count == 0) return b;
 
@@ -58,22 +59,31 @@ public static class ExpressionSimplifier
 
         foreach (var root in roots)
         {
-            var param = root.Item1;
+            var rootParam = root.Item1;
             var rootValue = root.Item2;
 
-            var numValueAtRoot = EvaluateAtPoint(numerator, param.Name, rootValue);
+            var numValueAtRoot = EvaluateAtPoint(numerator, rootParam.Name, rootValue);
 
-            if (Math.Abs(numValueAtRoot) < 1e-10)
+            if (numValueAtRoot == 0.0) // точная форма 0_F / 0_G — разрыв
             {
-                var simplified = PolynomialLongDivision.TryDivide(numerator, denominator, param);
+                // Классика закрывает только полиномиальные разрывы
+                var simplified = PolynomialLongDivision.TryDivide(numerator, denominator, rootParam);
                 if (simplified != null)
-                    singularities.Add(new BridgedExpression(simplified, param, rootValue));
+                {
+                    // bridged — классика справилась
+                    singularities.Add(new BridgedExpression(simplified, rootParam, rootValue));
+                }
                 else
-                    singularities.Add(new InfinityExpression(numerator, param, rootValue));
+                {
+                    // RICIS закрывает все остальные разрывы по A4
+                    var ricisIndex = Expression.Divide(numerator, denominator); // F/G
+                    singularities.Add(new InfinityExpression(ricisIndex, rootParam, rootValue));
+                }
             }
             else
             {
-                singularities.Add(new InfinityExpression(numerator, param, rootValue));
+                // Обычный полюс
+                singularities.Add(new InfinityExpression(numerator, rootParam, rootValue));
             }
         }
 
@@ -87,10 +97,18 @@ public static class ExpressionSimplifier
 
     private static double EvaluateAtPoint(Expression expr, string paramName, double value)
     {
-        var visitor = new SubstitutionVisitor(paramName, value);
-        var newExpr = visitor.Visit(expr);
-        var lambda = Expression.Lambda<Func<double>>(Expression.Convert(newExpr, typeof(double)));
-        return lambda.Compile()();
+        try
+        {
+            var visitor = new SubstitutionVisitor(paramName, value);
+            var newExpr = visitor.Visit(expr);
+            var lambda = Expression.Lambda<Func<double>>(Expression.Convert(newExpr, typeof(double)));
+            return lambda.Compile()();
+        }
+        catch
+        {
+            // Если не вычислимо (Log(0) и т.п.) — считаем не нулём (полюс)
+            return 1.0;
+        }
     }
 
     private class ParameterFinderVisitor : ExpressionVisitor

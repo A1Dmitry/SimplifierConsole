@@ -46,7 +46,24 @@ internal class Program
 
                 // Новый L14: Более жёсткий — потенциальная blow-up в нелинейном члене Навье-Стокса
                 // Упрощённая модель возможного конечного времени сингулярности: 1/(1 - x²) при x→1
-                { "L14: NS blow-up model (1 / (1 - x²))", x => 1 / (1 - x * x) }
+                { "L14: NS blow-up model (1 / (1 - x²))", x => 1 / (1 - x * x) },
+                // Новые известные сингулярности
+                { "L15: Essential Singularity (exp(1/z) at z=0)", x => Math.Exp(1 / x) },  // Классический essential singularity
+
+                { "L16: Simple Pole (1/z at z=0)", x => 1 / x },
+
+                { "L17: Pole of order 2 (1/z² at z=0)", x => 1 / (x * x) },
+
+                { "L18: Logarithmic Singularity (Log(z) at z=0)", x => Math.Log(x) },  // Branch point, но полюс в мнимой части
+
+                { "L19: Removable Singularity classic (sin(x)/x at x=0)", x => Math.Sin(x) / x },  // Уже был, но с именем
+
+                { "L20: Picard Theorem example (exp(1/z) essential)", x => Math.Exp(1 / x) },  // Повтор для демонстрации
+
+                { "L21: Big Bang model analogy (1/t as t→0+)", x => 1 / x },  // Сингулярность в начале времени (x>0)
+
+                { "L22: Black Hole Schwarzschild analogy (1/(1 - 2M/r) at r=2M)", x => 1 / (1 - x) },  // Координатная сингулярность на горизонте (x=1)
+                { "L23: Burgers equation blow-up model (1/(T - t))", x => 1 / (1 - x) }
             };
 
         var counter = 1;
