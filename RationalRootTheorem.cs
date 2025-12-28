@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 
+namespace SimplifierConsole;
+
 internal class RationalRootTheorem
 {
     public static List<Rational> GetPossibleRoots(Dictionary<int, Rational> coeffs)

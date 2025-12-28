@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
 
+namespace SimplifierConsole;
+
 public sealed class InfinityExpression : Expression
 {
     public InfinityExpression(Expression numerator, ParameterExpression variable, double value)
@@ -17,7 +19,7 @@ public sealed class InfinityExpression : Expression
 
     public override string ToString()
     {
-        return $"∞_{{{Numerator}}} при {Variable.Name} = {SingularityValue}";
+        return $"∞_{{{Numerator}}} при {Variable.Name} = {SingularityValue:R}";
     }
 }
 
@@ -35,6 +37,9 @@ public sealed class SingularityMonolithExpression : Expression
 
     public override string ToString()
     {
+        if (Singularities == null || Singularities.Count == 0)
+            return "Monolith { empty }";
+
         return $"Monolith {{ {string.Join(", ", Singularities)} }}";
     }
 }

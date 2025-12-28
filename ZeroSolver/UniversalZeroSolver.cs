@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
-using SimplifierConsole;
+
+namespace SimplifierConsole.ZeroSolver;
 
 /// <summary>
 ///     Универсальный точный решатель уравнения expr = 0

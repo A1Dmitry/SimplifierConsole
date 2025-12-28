@@ -28,7 +28,7 @@ public readonly struct Root : IEquatable<Root>
     public bool Equals(Root other)
     {
         return Parameter == other.Parameter &&
-               Math.Abs(DoubleValue - other.DoubleValue) < 1e-12;
+               Math.Abs(DoubleValue - other.DoubleValue) == 0;
     }
 
     public override int GetHashCode()

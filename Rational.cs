@@ -1,6 +1,8 @@
 using System.Numerics;
 using DivideByZeroException = System.DivideByZeroException;
 
+namespace SimplifierConsole;
+
 public readonly struct Rational : IEquatable<Rational>
 {
     public static readonly Rational Zero = new(0);

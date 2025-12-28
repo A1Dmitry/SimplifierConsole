@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
-using SimplifierConsole;
+
+namespace SimplifierConsole.ZeroSolver;
 
 public static class PolynomialZeroSolver
 {

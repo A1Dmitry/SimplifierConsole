@@ -1,6 +1,8 @@
 ﻿// RicisCore/PolarConverter.cs
-using System;
+
 using System.Linq.Expressions;
+
+namespace SimplifierConsole;
 
 public static class PolarConverter
 {

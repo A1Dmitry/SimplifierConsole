@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using SimplifierConsole.ZeroSolver;
 
 namespace SimplifierConsole;
 
@@ -56,7 +57,6 @@ public static class PolynomialLongDivision
 
             quotient[termDegree] = termCoeff;
 
-            // Вычитаем term * divisor
             foreach (var (degB, coeffB) in divisor)
             {
                 var degResult = degB + termDegree;
@@ -77,31 +77,35 @@ public static class PolynomialLongDivision
             }
         }
 
-        // Если остаток не нулевой — возвращаем null
-        if (remainder.Count > 0 && remainder.Values.Any(v => !v.IsZero))
-            return null;
+        // КРИТИЧНО: строгий запрет на неточное деление
+        if (remainder.Count > 0)
+        {
+            return null; // любой остаток — деление неточное
+        }
 
         return quotient;
     }
 
-    private static Expression BuildExpressionFromCoefficients(Dictionary<int, Rational> coeffs,
-        ParameterExpression param)
+    private static Expression BuildExpressionFromCoefficients(Dictionary<int, Rational> coeffs, ParameterExpression param)
     {
-        if (coeffs.Count == 0) return Expression.Constant(0.0);
+        if (coeffs == null || coeffs.Count == 0)
+            return Expression.Constant(0.0);
 
         Expression result = null;
 
-        // Сортируем по убыванию степени
+        // Сортируем по убыванию степени для правильного порядка (опционально, но красиво)
         foreach (var kv in coeffs.OrderByDescending(k => k.Key))
         {
-            var degree = kv.Key;
-            var coeff = kv.Value;
+            int degree = kv.Key;
+            Rational coeff = kv.Value;
 
-            Expression term;
-
-            if (coeff.IsZero) continue;
+            // Пропускаем нулевые коэффициенты — они не влияют на полином
+            if (coeff.IsZero)
+                continue;
 
             Expression coeffExpr = ConstantFromRational(coeff);
+
+            Expression term;
 
             if (degree == 0)
             {
@@ -113,20 +117,27 @@ public static class PolynomialLongDivision
             }
             else
             {
+                // Строим x^degree = x * x * ... * x (degree раз)
                 Expression power = param;
-                for (var i = 1; i < degree; i++) power = Expression.Multiply(power, param);
+                for (int i = 1; i < degree; i++)
+                {
+                    power = Expression.Multiply(power, param);
+                }
                 term = Expression.Multiply(coeffExpr, power);
             }
 
+            // Накопление: result + term
             result = result == null ? term : Expression.Add(result, term);
         }
 
+        // Если после фильтрации ничего не осталось — возвращаем 0
         return result ?? Expression.Constant(0.0);
     }
 
     private static ConstantExpression ConstantFromRational(Rational r)
     {
-        var value = r.ToDouble();
-        return Expression.Constant(value);
+        // Rational.ToDouble() уже есть в твоём проекте
+        double value = r.ToDouble();
+        return Expression.Constant(value, typeof(double));
     }
 }

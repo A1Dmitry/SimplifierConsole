@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
-using RicisCore;
+
+namespace SimplifierConsole;
 
 /// <summary>
 ///     Представление типового нуля 0_F — ноль с индексом (Expression) и типом индекса (RicisType).

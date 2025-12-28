@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using SimplifierConsole;
-using SimplifierConsole.ZeroSolver;
+﻿using System.Linq.Expressions;
 
-namespace SimplifierConsole
+namespace SimplifierConsole.ZeroSolver
 {
     /// <summary>
     /// Решатель для exp(g(x)) - 1 = 0  =>  g(x) = 0
@@ -97,8 +92,8 @@ namespace SimplifierConsole
             {
                 int i => i == 1,
                 long l => l == 1L,
-                double d => Math.Abs(d - 1.0) < 1e-12,
-                float f => Math.Abs(f - 1.0f) < 1e-12f,
+                double d => Math.Abs(d - 1.0) == 0,
+                float f => Math.Abs(f - 1.0f) == 0,
                 decimal dm => dm == 1m,
                 _ => false
             };

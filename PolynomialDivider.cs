@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
 
+namespace SimplifierConsole;
+
 public static class PolynomialDivider
 {
     public static Expression TryDivide(Expression numerator, Expression denominator)

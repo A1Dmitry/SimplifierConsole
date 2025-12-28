@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
 using System.Numerics;
 
+namespace SimplifierConsole.ZeroSolver;
+
 public class PolynomialCoefficientCollector : ExpressionVisitor
 {
     private readonly ParameterExpression _parameter;
@@ -178,8 +180,8 @@ public class PolynomialCoefficientCollector : ExpressionVisitor
         if (value is double db)
         {
             // Обработка double отдельно
-            long intValue = (long)Math.Round(db);
-            if (Math.Abs(db - intValue) < 1e-12)
+            var intValue = (long)Math.Round(db);
+            if (Math.Abs(db - intValue) == 0)
             {
                 return Rational.Create(intValue);
             }

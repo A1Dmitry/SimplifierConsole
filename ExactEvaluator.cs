@@ -2,6 +2,8 @@ using System.Linq.Expressions;
 using System.Numerics;
 using Math = System.Math;
 
+namespace SimplifierConsole;
+
 /// <summary>
 ///     ѕытаетс€ точно (рационально) вычислить выражение после подстановки.
 ///     ѕоддерживает: Constant (int,long,decimal), Parameter замен€етс€ на заданное рациональное значение,

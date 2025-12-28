@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
 
+namespace SimplifierConsole;
+
 internal static class LinearExtractor
 {
     public static (double multiplier, double offset)? Extract(Expression expr, ParameterExpression param)

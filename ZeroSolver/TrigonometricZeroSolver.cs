@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
-using SimplifierConsole;
+
+namespace SimplifierConsole.ZeroSolver;
 
 public static class TrigonometricZeroSolver
 {
@@ -32,7 +33,7 @@ public static class TrigonometricZeroSolver
 
             // Главное значение (k=0)
             var theta = baseAngle - offset;
-            if (Math.Abs(multiplier) > 1e-10)
+            if (Math.Abs(multiplier) > 0)
             {
                 var x = theta / multiplier;
                 roots.Add(new Root(param, x));

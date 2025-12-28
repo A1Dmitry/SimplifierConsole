@@ -1,5 +1,6 @@
-﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+
+namespace SimplifierConsole;
 
 /// <summary>
 /// Improved trig solver: supports composite linear arguments a*x + b (a,b constants).

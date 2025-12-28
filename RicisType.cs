@@ -1,4 +1,4 @@
-﻿namespace RicisCore;
+﻿namespace SimplifierConsole;
 
 public class RicisType : IEquatable<RicisType>
 {

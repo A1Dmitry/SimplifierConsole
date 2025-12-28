@@ -1,4 +1,4 @@
-﻿namespace RicisCore;
+﻿namespace SimplifierConsole;
 
 public enum EntityState
 {

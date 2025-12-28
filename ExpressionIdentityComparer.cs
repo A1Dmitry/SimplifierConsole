@@ -1,7 +1,8 @@
 ﻿// RicisCore/ExpressionIdentityComparer.cs
-using System;
+
 using System.Linq.Expressions;
-using System.Reflection;
+
+namespace SimplifierConsole;
 
 public static class ExpressionIdentityComparer
 {

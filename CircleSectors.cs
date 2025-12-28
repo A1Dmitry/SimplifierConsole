@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 
+namespace SimplifierConsole;
+
 public readonly struct CircleSectors
 {
     public Rational Fraction { get; }
@@ -28,10 +30,17 @@ public readonly struct CircleSectors
 
     private static Rational BestRationalApproximation(double x, int maxDenominator)
     {
-        if (Math.Abs(x) < 1e-12) return Rational.Zero;
-        if (Math.Abs(x - 1.0) < 1e-12) return Rational.One;
+        var absX = Math.Abs(x);
+        switch (absX)
+        {
+            case 0:
+                return Rational.Zero;
+            case 1:
+                return Rational.One;
+        }
+        
 
-        var value = Math.Abs(x);
+        var value = absX;
         var a0 = (BigInteger)Math.Floor(value);
         var f = value - (double)a0;
 
