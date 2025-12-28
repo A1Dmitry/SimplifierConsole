@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
 using RicisCore;
+using SimplifierConsole.Simplifiers;
 
 internal class Program
 {
@@ -63,7 +64,8 @@ internal class Program
                 { "L21: Big Bang model analogy (1/t as t→0+)", x => 1 / x },  // Сингулярность в начале времени (x>0)
 
                 { "L22: Black Hole Schwarzschild analogy (1/(1 - 2M/r) at r=2M)", x => 1 / (1 - x) },  // Координатная сингулярность на горизонте (x=1)
-                { "L23: Burgers equation blow-up model (1/(T - t))", x => 1 / (1 - x) }
+                { "L23: Burgers equation blow-up model (1/(T - t))", x => 1 / (1 - x) },
+                { "L24: Nested Singularity (x / (x * x)) ",  x => (x / (x * x))}
             };
 
         var counter = 1;
@@ -136,6 +138,60 @@ internal class Program
             Console.WriteLine(new string('-', 50));
             counter++;
         }
+        Console.OutputEncoding = Encoding.UTF8;
+        Console.WriteLine("=== RICIS Symbolic Engine ===\n");
+        Console.WriteLine("Интерактивный режим: вводите выражение с переменной x (например, 1 / (x*(x+1)))");
+        Console.WriteLine("Для выхода введите 'exit' или 'quit'\n");
+
+        while (true)
+        {
+            Console.Write("Выражение> ");
+            string input = Console.ReadLine()?.Trim();
+
+            if (string.IsNullOrEmpty(input) || input.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
+                input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+            {
+                break;
+            }
+
+            try
+            {
+                // Парсим введённое выражение как Lambda: x => <input>
+                var param = Expression.Parameter(typeof(double), "x");
+                var expr = System.Linq.Dynamic.Core.DynamicExpressionParser.ParseLambda(
+                    new[] { param }, typeof(double), input).Body;
+
+                Console.WriteLine($"Введено: x => {expr}");
+
+                // Упрощаем по RICIS
+                var simplified = ExpressionSimplifier.Simplify(expr);
+
+                // Вывод результата
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"Результат RICIS: x => {simplified}");
+                Console.ResetColor();
+
+                // Полярное представление, если есть ∞ или Monolith
+                if (simplified is InfinityExpression inf)
+                {
+                    Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
+                }
+                else if (simplified is SingularityMonolithExpression mono)
+                {
+                    Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Ошибка парсинга или анализа: {ex.Message}");
+                Console.ResetColor();
+            }
+
+            Console.WriteLine(new string('-', 60));
+        }
+
+        Console.WriteLine("RICIS Symbolic Engine завершил работу.");
     }
 }
 
