@@ -1,74 +1,80 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using PolynomialProcessing;
+using SimplifierConsole;
 
 public static class SingularitySolver
 {
-    public static List<(ParameterExpression, double)> SolveRoot(Expression expr, ParameterExpression param)
+    public static List<(ParameterExpression, double)> SolveRoot(Expression expr)
     {
-        
-
-        // 1. Полиномы (квадратичные и линейные)
         var roots = new List<(ParameterExpression, double)>();
 
+        if (expr == null) return roots;
+
+        // 1. Specialized solvers first
+        // Trigonometric
+        var trig = TrigSolver.Solve(expr);
+        if (trig.HasValue)
+        {
+            var t = trig.Value;
+            var p = t.Item1;
+            var v = t.Item2;
+            roots.Add((p, NormalizeZero(v)));
+            return roots;
+        }
+
+        // Logarithmic
+        var log = LogSolver.Solve(expr);
+        if (log.HasValue)
+        {
+            var t = log.Value;
+            var p = t.Item1;
+            var v = t.Item2;
+            roots.Add((p, NormalizeZero(v)));
+            return roots;
+        }
+
+        // Exponential-like (if present)
+        var exp = ExponentialZeroSolver.Solve(expr);
+        if (exp.HasValue)
+        {
+            var t = exp.Value;
+            var p = t.Item1;
+            var v = t.Item2;
+            roots.Add((p, NormalizeZero(v)));
+            return roots;
+        }
+
+        // 2. Polynomial solver (quadratic)
         var poly = PolynomialParser.ParseQuadratic(expr);
         if (poly.HasValue)
         {
-            var (p, a, b, c) = poly.Value;
-
-            // Ключевое место для отладки
-            Console.WriteLine($"[RICIS DEBUG] Parsed quadratic for '{expr}': " +
-                              $"a = {a:R}, b = {b:R}, c = {c:R} (param: {p.Name})");
-
-            if (p == param)
+            var (param, a, b, c) = poly.Value;
+            if (Math.Abs(a) < double.Epsilon)
             {
-                if (a == 0.0)
+                // linear bx + c = 0 -> x = -c/b ; here visitor returns A=0,B=b,C=c
+                if (Math.Abs(b) > double.Epsilon)
                 {
-                    Console.WriteLine("[RICIS DEBUG] Linear case");
-                    if (b != 0.0)
-                    {
-                        double root = -c / b;
-                        Console.WriteLine($"[RICIS DEBUG] Linear root: {root:R}");
-                        roots.Add((param, root));
-                    }
+                    roots.Add((param, NormalizeZero(-c / b)));
                 }
-                else
+            }
+            else
+            {
+                var D = b * b - 4 * a * c;
+                if (D >= 0)
                 {
-                    Console.WriteLine("[RICIS DEBUG] Quadratic case");
-                    var D = b * b - 4 * a * c;
-                    Console.WriteLine($"[RICIS DEBUG] Discriminant D = {D:R}");
-
-                    if (D > 0)
-                    {
-                        var sqrtD = Math.Sqrt(D);
-                        double r1 = (-b + sqrtD) / (2 * a);
-                        double r2 = (-b - sqrtD) / (2 * a);
-                        Console.WriteLine($"[RICIS DEBUG] Roots: {r1:R}, {r2:R}");
-                        roots.Add((param, r1));
-                        roots.Add((param, r2));
-                    }
-                    else if (D == 0.0)
-                    {
-                        double root = -b / (2 * a);
-                        Console.WriteLine($"[RICIS DEBUG] Double root: {root:R}");
-                        roots.Add((param, root));
-                    }
+                    var sqrtD = Math.Sqrt(D);
+                    var x1 = (-b + sqrtD) / (2 * a);
+                    var x2 = (-b - sqrtD) / (2 * a);
+                    roots.Add((param, NormalizeZero(x1)));
+                    if (Math.Abs(x1 - x2) > double.Epsilon) roots.Add((param, NormalizeZero(x2)));
                 }
             }
         }
 
-        // 2. Тригонометрия — передаём известный параметр
-        var trig = TrigSolver.Solve(expr, param);
-        if (trig.HasValue)
-            roots.Add(trig.Value);
-
-        // 3. Логарифм: ln(x) = 0 ⇒ x = 1
-        if (expr is MethodCallExpression logCall &&
-            logCall.Method.Name == "Log" &&
-            logCall.Arguments.Count == 1 &&
-            logCall.Arguments[0] == param)
-        {
-            roots.Add((param, 1.0));
-        }
-
         return roots;
     }
+
+    private static double NormalizeZero(double v) => v == 0.0 ? 0.0 : v;
 }

@@ -1,9 +1,8 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
-using RicisCore;
 using SimplifierConsole.Simplifiers;
 
-internal class Program
+internal partial class Program
 {
     private static void Main()
     {
@@ -193,29 +192,5 @@ internal class Program
         }
 
         Console.WriteLine("RICIS Symbolic Engine завершил работу.");
-    }
-}
-
-/// <summary>
-///     Представление типового нуля 0_F — ноль с индексом (Expression) и типом индекса (RicisType).
-///     Теперь класс обобщённый: TValue задаёт CLR‑тип значения (как <double>, <int> и т.п.).
-/// </summary>
-public sealed class TypedZeroExpression<TValue> : Expression
-{
-    public TypedZeroExpression(Expression indexExpression, RicisType indexType)
-    {
-        IndexExpression = indexExpression;
-        IndexType = indexType ?? RicisType.Scalar;
-    }
-
-    public Expression IndexExpression { get; }
-    public RicisType IndexType { get; }
-
-    public override ExpressionType NodeType => ExpressionType.Extension;
-    public override Type Type => typeof(TValue);
-
-    public override string ToString()
-    {
-        return $"0_{{{IndexExpression}}}:{typeof(TValue).Name}";
     }
 }

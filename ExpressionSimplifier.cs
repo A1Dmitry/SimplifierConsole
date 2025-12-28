@@ -3,9 +3,14 @@
 using SimplifierConsole;
 using SimplifierConsole.Simplifiers;
 using System.Linq.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class ExpressionSimplifier
 {
+    private const int LOPITAL_MAX_ITER = 4;
+
     public static Expression Simplify(Expression expr)
     {
         return Visit(expr);
@@ -47,12 +52,8 @@ public static class ExpressionSimplifier
         var numerator = b.Left;
         var denominator = b.Right;
 
-        var paramVisitor = new ParameterFinderVisitor();
-        paramVisitor.Visit(b);
-        var param = paramVisitor.Parameter;
-        if (param == null) return b;
-
-        var roots = SingularitySolver.SolveRoot(denominator, param);
+        // параметр ищется в кортеже корней, поэтому не нужен отдельный visitor для параметра здесь
+        var roots = SingularitySolver.SolveRoot(denominator);
 
         if (roots.Count == 0) return b;
 
@@ -90,7 +91,6 @@ public static class ExpressionSimplifier
             }
             else
             {
-                
                 // Обычный полюс
                 singularities.Add(new InfinityExpression(numerator, rootParam, rootValue));
             }
@@ -117,17 +117,6 @@ public static class ExpressionSimplifier
         {
             // Если не вычислимо (Log(0) и т.п.) — считаем не нулём (полюс)
             return 1.0;
-        }
-    }
-
-    private class ParameterFinderVisitor : ExpressionVisitor
-    {
-        public ParameterExpression Parameter { get; private set; }
-
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            Parameter ??= node;
-            return base.VisitParameter(node);
         }
     }
 }
