@@ -65,7 +65,8 @@ internal class Program
 
                 { "L22: Black Hole Schwarzschild analogy (1/(1 - 2M/r) at r=2M)", x => 1 / (1 - x) },  // Координатная сингулярность на горизонте (x=1)
                 { "L23: Burgers equation blow-up model (1/(T - t))", x => 1 / (1 - x) },
-                { "L24: Nested Singularity (x / (x * x)) ",  x => (x / (x * x))}
+                { "L24: Nested Singularity (x / (x * x)) ",  x => (x / (x * x))},
+                { "L25: Твой тест джемини  ",  x => (x*2 / x)}
             };
 
         var counter = 1;
@@ -154,39 +155,39 @@ internal class Program
                 break;
             }
 
-            try
-            {
-                // Парсим введённое выражение как Lambda: x => <input>
-                var param = Expression.Parameter(typeof(double), "x");
-                var expr = System.Linq.Dynamic.Core.DynamicExpressionParser.ParseLambda(
-                    new[] { param }, typeof(double), input).Body;
+            //try
+            //{
+            //    // Парсим введённое выражение как Lambda: x => <input>
+            //    var param = Expression.Parameter(typeof(double), "x");
+            //    var expr = System.Linq.Dynamic.Core.DynamicExpressionParser.ParseLambda(
+            //        new[] { param }, typeof(double), input).Body;
 
-                Console.WriteLine($"Введено: x => {expr}");
+            //    Console.WriteLine($"Введено: x => {expr}");
 
-                // Упрощаем по RICIS
-                var simplified = ExpressionSimplifier.Simplify(expr);
+            //    // Упрощаем по RICIS
+            //    var simplified = ExpressionSimplifier.Simplify(expr);
 
-                // Вывод результата
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"Результат RICIS: x => {simplified}");
-                Console.ResetColor();
+            //    // Вывод результата
+            //    Console.ForegroundColor = ConsoleColor.Cyan;
+            //    Console.WriteLine($"Результат RICIS: x => {simplified}");
+            //    Console.ResetColor();
 
-                // Полярное представление, если есть ∞ или Monolith
-                if (simplified is InfinityExpression inf)
-                {
-                    Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
-                }
-                else if (simplified is SingularityMonolithExpression mono)
-                {
-                    Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Ошибка парсинга или анализа: {ex.Message}");
-                Console.ResetColor();
-            }
+            //    // Полярное представление, если есть ∞ или Monolith
+            //    if (simplified is InfinityExpression inf)
+            //    {
+            //        Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
+            //    }
+            //    else if (simplified is SingularityMonolithExpression mono)
+            //    {
+            //        Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.ForegroundColor = ConsoleColor.Red;
+            //    Console.WriteLine($"Ошибка парсинга или анализа: {ex.Message}");
+            //    Console.ResetColor();
+            //}
 
             Console.WriteLine(new string('-', 60));
         }

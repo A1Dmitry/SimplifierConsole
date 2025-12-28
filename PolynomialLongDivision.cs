@@ -8,11 +8,16 @@ public static class PolynomialLongDivision
     {
         var numCollector = new PolynomialCoefficientCollector(param);
         numCollector.Visit(numerator);
-        if (!numCollector.IsPolynomial) return null;
+
+        // ИСПРАВЛЕНИЕ:
+        if (!numCollector.IsPolynomial || numCollector.Coefficients.Count == 0)
+            return null;
 
         var denCollector = new PolynomialCoefficientCollector(param);
         denCollector.Visit(denominator);
-        if (!denCollector.IsPolynomial) return null;
+
+        if (!denCollector.IsPolynomial || denCollector.Coefficients.Count == 0)
+            return null;
 
         // Используем SortedDictionary с обратным порядком для удобства
         var dividend = new SortedDictionary<int, Rational>(numCollector.Coefficients,

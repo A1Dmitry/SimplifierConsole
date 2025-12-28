@@ -1,7 +1,8 @@
 ﻿// ExpressionSimplifier.cs (обновлённая версия с полным закрытием разрывов)
 
-using System.Linq.Expressions;
 using SimplifierConsole;
+using SimplifierConsole.Simplifiers;
+using System.Linq.Expressions;
 
 public static class ExpressionSimplifier
 {
@@ -66,10 +67,17 @@ public static class ExpressionSimplifier
 
             if (numValueAtRoot == 0.0) // точная форма 0_F / 0_G — разрыв
             {
+                Console.WriteLine($"[DEBUG] Found 0/0 at x={rootValue}");
+                Console.WriteLine($"[DEBUG] Numerator: {numerator}");
+                Console.WriteLine($"[DEBUG] Denominator: {denominator}");
                 // Классика закрывает только полиномиальные разрывы
                 var simplified = PolynomialLongDivision.TryDivide(numerator, denominator, rootParam);
+                Console.WriteLine($"[DEBUG] PolynomialLongDivision result: {simplified?.ToString() ?? "null"}");
+                simplified ??= PointIdentitySimplifier.TrySimplify(numerator, denominator, rootParam, rootValue);
                 if (simplified != null)
                 {
+                    Console.WriteLine($"[DEBUG] Simplified type: {simplified.GetType().Name}");
+                    Console.WriteLine($"[DEBUG] Simplified value: {simplified}");
                     // bridged — классика справилась
                     singularities.Add(new BridgedExpression(simplified, rootParam, rootValue));
                 }
@@ -82,6 +90,7 @@ public static class ExpressionSimplifier
             }
             else
             {
+                
                 // Обычный полюс
                 singularities.Add(new InfinityExpression(numerator, rootParam, rootValue));
             }
