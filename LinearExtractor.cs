@@ -33,7 +33,7 @@ internal static class LinearExtractor
                 double sign = node.NodeType == ExpressionType.Subtract ? -1 : 1;
                 ExtractLinear(node.Right, sign, ref coeff, ref constant);
 
-                if (Success = true)
+                if (Success == true)
                     Result = (coeff, constant);
                 return node;
             }
