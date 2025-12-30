@@ -1,7 +1,8 @@
-﻿using SimplifierConsole.Phases;
-using System.Linq.Dynamic.Core;
+﻿using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Text;
+using Ricis.Core;
+using Ricis.Core.Phases;
 
 namespace SimplifierConsole;
 
@@ -14,11 +15,11 @@ internal partial class Program
 
         var testCases = new Dictionary<string, Expression<Func<double, double>>>
         {
-            { "L1: Basic Singularity (10 / (x - 2))", x => 10 / (x - 2) },
+            { "L0: Basic Singularity (10 / (x - 2))", x => 10 / (x - 2) },
 
-            { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (x * x - 25) / (x - 5) },
+            { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (Math.Pow(x,2) - 25) / (x - 5) },
 
-            { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
+           { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
 
             { "L3: Quadratic Denom (1 / (x^2 - 4))", x => 1 / (x * x - 4) },
 
@@ -111,7 +112,7 @@ internal partial class Program
                         Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
                         Console.ResetColor();
                     }
-                    else if (result is SingularityMonolithExpression mono)
+                    else if (result is InfinityExpression mono)
                     {
                         Console.ForegroundColor = ConsoleColor.Magenta;
                         Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
@@ -215,12 +216,7 @@ internal partial class Program
                     Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
                     Console.ResetColor();
                 }
-                else if (simplified is SingularityMonolithExpression mono)
-                {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
-                    Console.ResetColor();
-                }
+               
             }
             catch (Exception ex)
             {
