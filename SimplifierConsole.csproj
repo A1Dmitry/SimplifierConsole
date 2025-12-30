@@ -8,6 +8,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="ExpressionIdentityComparer.cs" />
+	  <Compile Remove="Phases\RicisTransformPhase.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />
 	</ItemGroup>
 

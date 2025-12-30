@@ -30,6 +30,8 @@ public static class RicisPhasePipeline
         //// Phase 3: Algebraic simplification + A6 Bypass (после RICIS)
         expr = AlgebraicSimplifier.ApplyPostRicis(expr);
 
+        
+
         //// Phase 4: Type Consistency Protocol (SP3)
         expr = TypeConsistencyPhase.Apply(expr);
 

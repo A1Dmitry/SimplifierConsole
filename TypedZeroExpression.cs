@@ -6,7 +6,7 @@ namespace SimplifierConsole;
 ///     Представление типового нуля 0_F — ноль с индексом (Expression) и типом индекса (RicisType).
 ///     Теперь класс обобщённый: TValue задаёт CLR‑тип значения (как <double>, <int> и т.п.).
 /// </summary>
-public sealed class TypedZeroExpression<TValue> : Expression
+public sealed class TypedZeroExpression<TValue> : RicisExpression
 {
     public TypedZeroExpression(Expression indexExpression, RicisType indexType)
     {
@@ -17,7 +17,6 @@ public sealed class TypedZeroExpression<TValue> : Expression
     public Expression IndexExpression { get; }
     public RicisType IndexType { get; }
 
-    public override ExpressionType NodeType => ExpressionType.Extension;
     public override Type Type => typeof(TValue);
 
     public override string ToString()
