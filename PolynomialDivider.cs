@@ -6,29 +6,31 @@ public static class PolynomialDivider
 {
     public static Expression TryDivide(Expression numerator, Expression denominator)
     {
-        if (denominator is BinaryExpression bDen && bDen.NodeType == ExpressionType.Subtract &&
-            bDen.Right is ConstantExpression c)
+        if (denominator is BinaryExpression { NodeType: ExpressionType.Subtract, Right: ConstantExpression c } bDen)
         {
-            if (numerator is BinaryExpression bNum && bNum.NodeType == ExpressionType.Subtract &&
-                bNum.Right is ConstantExpression)
+            if (numerator is BinaryExpression { NodeType: ExpressionType.Subtract, Right: ConstantExpression })
                 return Expression.Add(bDen.Left, c); // Разность квадратов
 
-            if (numerator is BinaryExpression bNumFact && bNumFact.NodeType == ExpressionType.Subtract &&
+            if (numerator is BinaryExpression { NodeType: ExpressionType.Subtract } bNumFact &&
                 !(bNumFact.Right is ConstantExpression))
                 return bDen.Left; // Вынос множителя
         }
 
         // Кубы
-        if (numerator.ToString().Contains("((x * x) * x)") && denominator.ToString().Contains("(x - 1)"))
-        {
-            var x = ((BinaryExpression)denominator).Left;
-            var one = Expression.Constant(1.0);
-            var x2 = Expression.Multiply(x, x);
-            var xPlus1 = Expression.Add(x, one);
-            return Expression.Add(x2, xPlus1);
-        }
+        
 
         return null;
+    }
+
+   
+
+    private static bool IsX3(Expression expr, ParameterExpression x)
+    {
+        // Проверяем x * x * x
+        if (expr is BinaryExpression { NodeType: ExpressionType.Multiply } m1)
+            if (m1.Left is BinaryExpression { NodeType: ExpressionType.Multiply } m2)
+                return m2.Left == x && m2.Right == x && m1.Right == x;
+        return false;
     }
 }
 

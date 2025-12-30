@@ -4,7 +4,7 @@ namespace SimplifierConsole;
 
 public abstract class RicisExpression : Expression
 {
-    public abstract override ExpressionType NodeType { get; }
+    public override ExpressionType NodeType => ExpressionType.Extension;
     public abstract override Type Type { get; }
 
     // Универсальный структурный оператор

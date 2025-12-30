@@ -38,10 +38,11 @@ public static class AlgebraicSimplifier
 
             if (node.NodeType == ExpressionType.Divide)
             {
-                if (ExpressionIdentityComparer.AreSelfIdentical(left, right))
+                if (left.AsComparable() == right.AsComparable())
                 {
                     return Expression.Constant(1.0, typeof(double));
                 }
+                
 
                 var parameter = FindSingleParameter(node);
                 if (parameter != null)
