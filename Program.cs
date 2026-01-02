@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using System.Text;
 using Ricis.Core;
+using Ricis.Core.Expressions;
 using Ricis.Core.Phases;
 
 namespace SimplifierConsole;
@@ -142,10 +143,12 @@ internal partial class Program
             Console.Write("RICIS> ");
             Console.ResetColor();
 
-            string input = Console.ReadLine()?.Trim();
+            var input = Console.ReadLine()?.Trim();
 
             if (string.IsNullOrEmpty(input))
+            {
                 continue;
+            }
 
             if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
                 input.Equals("quit", StringComparison.OrdinalIgnoreCase))
