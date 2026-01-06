@@ -1,9 +1,11 @@
-﻿using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
-using System.Text;
-using Ricis.Core;
+﻿using Ricis.Core;
 using Ricis.Core.Expressions;
 using Ricis.Core.Phases;
+using System.Linq.Dynamic.Core;
+using System.Linq.Dynamic.Core.Exceptions;
+using System.Linq.Expressions;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SimplifierConsole;
 
@@ -133,9 +135,9 @@ internal partial class Program
         }
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("=== RICIS Symbolic Engine v7.3 ===\n");
-        Console.WriteLine("Интерактивный режим 5-й стадии");
-        Console.WriteLine("Введите выражение с переменной x (например: 1 / (x*(x+1)))");
-        Console.WriteLine("Команды: help, exit, quit\n");
+        Console.WriteLine("Interactive mode of the 5th stage");
+        Console.WriteLine("Enter an expression with variable x (for example: x => 1 / (x*(x+1)))");
+        Console.WriteLine("Commands: help, exit, quit\n");
 
         while (true)
         {
@@ -144,7 +146,11 @@ internal partial class Program
             Console.ResetColor();
 
             var input = Console.ReadLine()?.Trim();
-
+            input = Regex.Replace(
+                input,
+                @"\b(Sin|Cos|Tan|Pow|Exp|Log)\b",
+                "Math.$1"
+            );
             if (string.IsNullOrEmpty(input))
             {
                 continue;
@@ -155,33 +161,32 @@ internal partial class Program
             {
                 break;
             }
-
+            
             if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("Поддерживаемые операции: +, -, *, /, ^ (Power), Sin, Cos, Tan, Exp, Log и т.д.");
-                Console.WriteLine("Примеры:");
-                Console.WriteLine("  sin(x)/cos(x)");
-                Console.WriteLine("  (exp(x) - 1)/x");
-                Console.WriteLine("  1/(1 - x^2)");
+                
+                Console.WriteLine("Supported operations: +, -, *, /, ^ (Power), Sin, Cos, Tan, Exp, Log и т.д.");
+                Console.WriteLine("Examples:");
+                Console.WriteLine("x => Math.Sin(x)/Math.SinCos(x)");
+                Console.WriteLine("x => (Math.Exp(x) - 1)/x");
+                Console.WriteLine("x =>  1/(1 - Math.Pow(x, 2)");
                 Console.WriteLine("""
-                 x^2 → Math.Pow(x, 2)
-                 x^3 → Math.Pow(x, 3)
-                 x^4 → Math.Pow(x, 4)
-                 1 / (Math.Pow(x, 2) + 1)
-                 1 / Cos(x)   // cot(x) = 1/tan(x) = cos(x)/sin(x), но проще через Cos
-                 1 / Sin(1/x)
-                (Math.Pow(x, 3) - 8)/(x - 2)
-                1 / Cos(x)   // sec(x)
-                1 / (Math.Pow(x, 4) - 1)
-                Gamma(x)
-                Sinh(x)/x
-                1 / (Exp(x) - 1)
-                BesselJ(0, x)
-                (Math.Pow(x, 2) + x + 1)/(x + 1)
-                1 / Tan(x - Math.PI/4)
-                (Cos(x) - 1)/x
-                1 / (Math.Pow(x, 3) + x)
-                Exp(-1/Math.Pow(x, 2))
+                Write: x^2 as Math.Pow(x, 2)
+                       x^3 → Math.Pow(x, 3)
+                       x^4 → Math.Pow(x, 4)
+                 x => 1 / (Math.Pow(x, 2) + 1)
+                 x => 1 / Math.Cos(x)   // cot(x) = 1/tan(x) = cos(x)/sin(x), 
+                 x => 1 / Math.Sin(1/x)
+                 x => (Math.Pow(x, 3) - 8)/(x - 2)
+                 x => 1 / Math.Cos(x)   // sec(x)
+                 x => 1 / (Math.Pow(x, 4) - 1)
+                 x => Math.Sinh(x)/x
+                 x => 1 / (Math.Exp(x) - 1)
+                 x => (Math.Pow(x, 2) + x + 1)/(x + 1)
+                 x => 1 / Math.Tan(x - Math.PI/4)
+                 x => (Math.Cos(x) - 1)/x
+                 x => 1 / (Math.Pow(x, 3) + x)
+                 x => Math.Exp(-1/Math.Pow(x, 2))
                 """);
                 continue;
             }
@@ -197,11 +202,11 @@ internal partial class Program
                     AllowNewToEvaluateAnyType = false,
 
                 };
-                var lambda = System.Linq.Dynamic.Core.DynamicExpressionParser.ParseLambda(config, new[] { param }, typeof(double), input);
+                var lambda = DynamicExpressionParser.ParseLambda(config, new[] { param }, typeof(double), input);
                 var expr = lambda.Body;
 
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"Введено: x => {expr}");
+                Console.WriteLine($"Introduced: x => {expr}");
                 Console.ResetColor();
 
                 // Упрощаем через полный RICIS пайплайн
@@ -213,13 +218,25 @@ internal partial class Program
                 Console.ResetColor();
 
                 // Полярное представление (5-я стадия)
-                if (simplified is InfinityExpression inf)
+                //if (simplified is InfinityExpression inf)
+                //{
+                //    Console.ForegroundColor = ConsoleColor.Magenta;
+                //    Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
+                //    Console.ResetColor();
+                //}
+
+            }
+            catch (ParseException pex)
+            {
+                
+                Console.ForegroundColor = ConsoleColor.Red;
+                if (pex.HResult == -2146233088)
                 {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
-                    Console.ResetColor();
+                    var match = Regex.Match(pex.Message, "'([^']+)'");
+                    string methodName = match.Groups[1].Value; // Cos
+                    Console.WriteLine($"Syntax error: Use Math.{methodName} as function");
                 }
-               
+                Console.ResetColor();
             }
             catch (Exception ex)
             {
@@ -231,6 +248,6 @@ internal partial class Program
             Console.WriteLine(new string('-', 60));
         }
 
-        Console.WriteLine("RICIS Symbolic Engine завершил работу. До свидания!");
+        Console.WriteLine("RICIS Symbolic Engine Finished work. Goodbye!");
     }
 }
