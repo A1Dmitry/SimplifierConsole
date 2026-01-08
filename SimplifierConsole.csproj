@@ -11,7 +11,9 @@
 	  <Compile Remove="ExpressionIdentityComparer.cs" />
 	  <Compile Remove="Phases\RicisTransformPhase.cs" />
 	</ItemGroup>
-
+	<PropertyGroup>
+		<PublishAot>true</PublishAot>
+	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />
 	</ItemGroup>

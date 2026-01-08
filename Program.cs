@@ -1,15 +1,15 @@
-﻿using Ricis.Core;
-using Ricis.Core.Expressions;
-using Ricis.Core.Phases;
-using System.Linq.Dynamic.Core;
+﻿using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
+using Ricis.Core;
+using Ricis.Core.Expressions;
+using Ricis.Core.Phases;
 
 namespace SimplifierConsole;
 
-internal partial class Program
+internal class Program
 {
     private static void Main()
     {
@@ -20,9 +20,9 @@ internal partial class Program
         {
             { "L0: Basic Singularity (10 / (x - 2))", x => 10 / (x - 2) },
 
-            { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (Math.Pow(x,2) - 25) / (x - 5) },
+            { "L1: Removable Squares ((x^2 - 25)/(x - 5))", x => (Math.Pow(x, 2) - 25) / (x - 5) },
 
-           { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
+            { "L2: Coefficients (1 / (2x - 6))", x => 1 / (2 * x - 6) },
 
             { "L3: Quadratic Denom (1 / (x^2 - 4))", x => 1 / (x * x - 4) },
 
@@ -55,25 +55,34 @@ internal partial class Program
             // Упрощённая модель возможного конечного времени сингулярности: 1/(1 - x²) при x→1
             { "L14: NS blow-up model (1 / (1 - x²))", x => 1 / (1 - x * x) },
             // Новые известные сингулярности
-            { "L15: Essential Singularity (exp(1/z) at z=0)", x => Math.Exp(1 / x) },  // Классический essential singularity
+            {
+                "L15: Essential Singularity (exp(1/z) at z=0)", x => Math.Exp(1 / x)
+            }, // Классический essential singularity
 
             { "L16: Simple Pole (1/z at z=0)", x => 1 / x },
 
             { "L17: Pole of order 2 (1/z² at z=0)", x => 1 / (x * x) },
 
-            { "L18: Logarithmic Singularity (Log(z) at z=0)", x => Math.Log(x) },  // Branch point, но полюс в мнимой части
+            {
+                "L18: Logarithmic Singularity (Log(z) at z=0)", x => Math.Log(x)
+            }, // Branch point, но полюс в мнимой части
 
-            { "L19: Removable Singularity classic (sin(x)/x at x=0)", x => Math.Sin(x) / x },  // Уже был, но с именем
+            { "L19: Removable Singularity classic (sin(x)/x at x=0)", x => Math.Sin(x) / x }, // Уже был, но с именем
 
-            { "L20: Picard Theorem example (exp(1/z) essential)", x => Math.Exp(1 / x) },  // Повтор для демонстрации
+            { "L20: Picard Theorem example (exp(1/z) essential)", x => Math.Exp(1 / x) }, // Повтор для демонстрации
 
-            { "L21: Big Bang model analogy (1/t as t→0+)", x => 1 / x },  // Сингулярность в начале времени (x>0)
+            { "L21: Big Bang model analogy (1/t as t→0+)", x => 1 / x }, // Сингулярность в начале времени (x>0)
 
-            { "L22: Black Hole Schwarzschild analogy (1/(1 - 2M/r) at r=2M)", x => 1 / (1 - x) },  // Координатная сингулярность на горизонте (x=1)
+            {
+                "L22: Black Hole Schwarzschild analogy (1/(1 - 2M/r) at r=2M)", x => 1 / (1 - x)
+            }, // Координатная сингулярность на горизонте (x=1)
             { "L23: Burgers equation blow-up model (1/(T - t))", x => 1 / (1 - x) },
-            { "L24: Nested Singularity (x / (x * x)) ",  x => (x / (x * x))},
-            { "L25:   ",  x => (x * 2 / x)},
-            { "L25: POW  ",  x => 1 / (Math.Pow(x, 4) - 1)}
+            { "L24: Nested Singularity (x / (x * x)) ", x => x / (x * x) },
+            {
+                "L25: blow-up singularity: 1 /(Math.Cos(x) * Math.Sinh(x) -1)  ",
+                x => 1 / (Math.Cos(x) * Math.Sinh(x) - 1)
+            },
+            { "L26: POW  ", x => 1 / (Math.Pow(x, 4) - 1) }
         };
 
         var counter = 1;
@@ -105,20 +114,20 @@ internal partial class Program
 
                     // 3. Если это бесконечность, пробуем Полярные координаты
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    
+
                     Console.ResetColor();
 
                     // Полярное представление RICIS-III для ∞_F и Monolith
                     if (result is InfinityExpression inf)
                     {
                         Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
+                        Console.WriteLine(PolarConverter.ToPolarSector(inf, 8));
                         Console.ResetColor();
                     }
                     else if (result is InfinityExpression mono)
                     {
                         Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine(PolarConverter.ToPolarSector(mono, totalSectors: 8));
+                        Console.WriteLine(PolarConverter.ToPolarSector(mono, 8));
                         Console.ResetColor();
                     }
                 }
@@ -133,6 +142,7 @@ internal partial class Program
             Console.WriteLine(new string('-', 50));
             counter++;
         }
+
         Console.OutputEncoding = Encoding.UTF8;
         Console.WriteLine("=== RICIS Symbolic Engine v7.3 ===\n");
         Console.WriteLine("Interactive mode of the 5th stage");
@@ -151,43 +161,37 @@ internal partial class Program
                 @"\b(Sin|Cos|Tan|Pow|Exp|Log)\b",
                 "Math.$1"
             );
-            if (string.IsNullOrEmpty(input))
-            {
-                continue;
-            }
+            if (string.IsNullOrEmpty(input)) continue;
 
             if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
                 input.Equals("quit", StringComparison.OrdinalIgnoreCase))
-            {
                 break;
-            }
-            
+
             if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
             {
-                
                 Console.WriteLine("Supported operations: +, -, *, /, ^ (Power), Sin, Cos, Tan, Exp, Log и т.д.");
                 Console.WriteLine("Examples:");
-                Console.WriteLine("x => Math.Sin(x)/Math.SinCos(x)");
+                Console.WriteLine("x => Math.Sin(x)/Math.Cos(x)");
                 Console.WriteLine("x => (Math.Exp(x) - 1)/x");
                 Console.WriteLine("x =>  1/(1 - Math.Pow(x, 2)");
                 Console.WriteLine("""
-                Write: x^2 as Math.Pow(x, 2)
-                       x^3 → Math.Pow(x, 3)
-                       x^4 → Math.Pow(x, 4)
-                 x => 1 / (Math.Pow(x, 2) + 1)
-                 x => 1 / Math.Cos(x)   // cot(x) = 1/tan(x) = cos(x)/sin(x), 
-                 x => 1 / Math.Sin(1/x)
-                 x => (Math.Pow(x, 3) - 8)/(x - 2)
-                 x => 1 / Math.Cos(x)   // sec(x)
-                 x => 1 / (Math.Pow(x, 4) - 1)
-                 x => Math.Sinh(x)/x
-                 x => 1 / (Math.Exp(x) - 1)
-                 x => (Math.Pow(x, 2) + x + 1)/(x + 1)
-                 x => 1 / Math.Tan(x - Math.PI/4)
-                 x => (Math.Cos(x) - 1)/x
-                 x => 1 / (Math.Pow(x, 3) + x)
-                 x => Math.Exp(-1/Math.Pow(x, 2))
-                """);
+                                  Write: x^2 as Math.Pow(x, 2)
+                                         x^3 → Math.Pow(x, 3)
+                                         x^4 → Math.Pow(x, 4)
+                                   x => 1 / (Math.Pow(x, 2) + 1)
+                                   x => 1 / Math.Cos(x)   // cot(x) = 1/tan(x) = cos(x)/sin(x), 
+                                   x => 1 / Math.Sin(1/x)
+                                   x => (Math.Pow(x, 3) - 8)/(x - 2)
+                                   x => 1 / Math.Cos(x)   // sec(x)
+                                   x => 1 / (Math.Pow(x, 4) - 1)
+                                   x => Math.Sinh(x)/x
+                                   x => 1 / (Math.Exp(x) - 1)
+                                   x => (Math.Pow(x, 2) + x + 1)/(x + 1)
+                                   x => 1 / Math.Tan(x - Math.PI/4)
+                                   x => (Math.Cos(x) - 1)/x
+                                   x => 1 / (Math.Pow(x, 3) + x)
+                                   x => Math.Exp(-1/Math.Pow(x, 2))
+                                  """);
                 continue;
             }
 
@@ -199,8 +203,7 @@ internal partial class Program
                 var config = new ParsingConfig
                 {
                     IsCaseSensitive = false,
-                    AllowNewToEvaluateAnyType = false,
-
+                    AllowNewToEvaluateAnyType = false
                 };
                 var lambda = DynamicExpressionParser.ParseLambda(config, new[] { param }, typeof(double), input);
                 var expr = lambda.Body;
@@ -224,18 +227,17 @@ internal partial class Program
                 //    Console.WriteLine(PolarConverter.ToPolarSector(inf, totalSectors: 8));
                 //    Console.ResetColor();
                 //}
-
             }
             catch (ParseException pex)
             {
-                
                 Console.ForegroundColor = ConsoleColor.Red;
                 if (pex.HResult == -2146233088)
                 {
                     var match = Regex.Match(pex.Message, "'([^']+)'");
-                    string methodName = match.Groups[1].Value; // Cos
+                    var methodName = match.Groups[1].Value; // Cos
                     Console.WriteLine($"Syntax error: Use Math.{methodName} as function");
                 }
+
                 Console.ResetColor();
             }
             catch (Exception ex)
