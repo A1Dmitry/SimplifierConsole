@@ -124,7 +124,7 @@ internal class Program
             },
 
             {
-                "L37: Euler vortex sheet", x => 1 / Math.Sqrt(Math.Abs(x) + 1e-10)
+                "L37: Euler vortex sheet", x => 1 / Math.Sqrt(Math.Abs(x) + double.Epsilon)
             },
 
             {
@@ -140,7 +140,7 @@ internal class Program
             },
 
             {
-                "L41: Yang-Mills monopole", x => 1 / Math.Sqrt(x * x + 1e-10)
+                "L41: Yang-Mills monopole", x => 1 / Math.Sqrt(x * x + double.Epsilon)
 
             }
 
