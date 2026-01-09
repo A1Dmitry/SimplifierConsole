@@ -82,7 +82,68 @@ internal class Program
                 "L25: blow-up singularity: 1 /(Math.Cos(x) * Math.Sinh(x) -1)  ",
                 x => 1 / (Math.Cos(x) * Math.Sinh(x) - 1)
             },
-            { "L26: POW  ", x => 1 / (Math.Pow(x, 4) - 1) }
+            { "L26: POW  ", x => 1 / (Math.Pow(x, 4) - 1) },
+            {
+                "L27: Pole order 3 (1/z³ at z=0)", x => 1 / (x * x * x)
+            },
+
+            {
+                "L28: Triple root removable ((x³-8)/(x-2))", x => (Math.Pow(x, 3) - 8) / (x - 2)
+            },
+
+            {
+                "L29: Double pole quadratic (1/(x²(x-1)))", x => 1 / (x * x * (x - 1))
+            },
+
+            {
+                "L30: Branch point sqrt(z) at z=0", x => Math.Sqrt(x)
+            },
+
+            {
+                "L31: Γ(z) pole reflection (sin(πz)/z)", x => Math.Sin(Math.PI * x) / x // Γ(z) pole proxy
+            },
+
+            {
+                "L32: Bessel J₀(z) essential at ∞", x => Math.Sqrt(2 / (Math.PI * x)) * Math.Cos(x - Math.PI/4)
+            },
+
+            {
+                "L33: Airy Ai(z) Stokes line", x => Math.Exp(Math.Pow(x, 1.5))
+            },
+
+            {
+                "L34: Riemann ζ(z) pole proxy at z=1", x => 1 / (x - 1) + Math.Log(Math.Abs(x))
+            },
+
+            {
+                "L35: Fermi-Dirac integral", x => Math.Log(1 + Math.Exp(-1 / x)) / x
+            },
+
+            {
+                "L36: NS 3D blow-up (T-t)^{-1/3}", x => 1 / Math.Pow(1 - x, 2.0/3)
+            },
+
+            {
+                "L37: Euler vortex sheet", x => 1 / Math.Sqrt(Math.Abs(x) + 1e-10)
+            },
+
+            {
+                "L38: Schwarzschild g_{00}", x => 1 / (1 - 2 / x)
+            },
+
+            {
+                "L39: QCD instanton action", x => Math.Exp(-8 * Math.PI * Math.PI / x)
+            },
+
+            {
+                "L40: Casimir c/12 UV pole", x => 1 / (12 * x)
+            },
+
+            {
+                "L41: Yang-Mills monopole", x => 1 / Math.Sqrt(x * x + 1e-10)
+
+            }
+
         };
 
         var counter = 1;
@@ -161,11 +222,16 @@ internal class Program
                 @"\b(Sin|Cos|Tan|Pow|Exp|Log)\b",
                 "Math.$1"
             );
-            if (string.IsNullOrEmpty(input)) continue;
+            if (string.IsNullOrEmpty(input))
+            {
+                continue;
+            }
 
             if (input.Equals("exit", StringComparison.OrdinalIgnoreCase) ||
                 input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+            {
                 break;
+            }
 
             if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
             {
