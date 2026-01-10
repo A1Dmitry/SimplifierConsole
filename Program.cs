@@ -142,7 +142,48 @@ internal class Program
             {
                 "L41: Yang-Mills monopole", x => 1 / Math.Sqrt(x * x + double.Epsilon)
 
-            }
+            },
+             // --- НОВЫЕ ТЕСТЫ (RICIS v7.4 Check) ---
+
+            // L42: Требует 3-х кратного применения правила Лопиталя.
+            // (x - sin(x)) / x^3 -> (1 - cos(x))/3x^2 -> sin(x)/6x -> cos(x)/6 -> 1/6 (0.1666...)
+            { "L42: Higher Order L'Hopital ((x - sin(x))/x^3)", x => (x - Math.Sin(x)) / Math.Pow(x, 3) },
+
+            // L43: Гиперболический 0/0. Проверка производных Sinh/Cosh.
+            // (sinh(x) - x) / x^3 -> (cosh(x) - 1)/3x^2 -> sinh(x)/6x -> cosh(x)/6 -> 1/6
+            { "L43: Hyperbolic Removable ((Sinh(x) - x)/x^3)", x => (Math.Sinh(x) - x) / Math.Pow(x, 3) },
+
+            // L44: Тест на отсутствие корней (Regression для NaN).
+            // x^2 + 1 = 0 -> x = ±i. Движок должен вернуть (NO SIMPLIFICATION).
+            { "L44: Irreducible Quadratic (1 / (x^2 + 1))", x => 1 / (x * x + 1) },
+
+            // L45: Смешанная трансцендентная сингулярность.
+            // 1 - tan(x) = 0 -> tan(x) = 1 -> x = PI/4 (0.7853...)
+            { "L45: Tangent Pole (1 / (1 - Tan(x)))", x => 1 / (1 - Math.Tan(x)) },
+
+            // L46: Композитная экспонента.
+            // e^(x^2) - 1 = 0 -> x^2 = 0 -> x = 0.
+            // Это полюс 2-го порядка, но движок должен найти корень.
+            { "L46: Composite Exponential Pole (1 / (Exp(x^2) - 1))", x => 1 / (Math.Exp(x * x) - 1) },
+
+            // L47: Логарифмический ноль.
+            // ln(x) = 0 -> x = 1.
+            // 1 / ln(x) при x=1.
+            { "L47: Logarithmic Zero (1 / Log(x))", x => 1 / Math.Log(x) },
+
+            // L48: "Мягкая" сингулярность (Soft Singularity).
+            // x * ln(x) при x -> 0. Это форма 0 * ∞.
+            // Мы запишем как ln(x) / (1/x), чтобы проверить, справится ли Лопиталь с ∞/∞.
+            // (ln x)' / (1/x)' = (1/x) / (-1/x^2) = -x -> 0.
+            { "L48: Indeterminate form 0*Inf (Log(x) / (1/x))", x => Math.Log(x) / (1 / x) },
+
+            // L49: Полином высокой степени.
+            // x^5 - 32 = 0 -> x = 2.
+            { "L49: Quintic Pole (1 / (x^5 - 32))", x => 1 / (Math.Pow(x, 5) - 32) },
+
+            // L50: Стресс-тест точности (очень близкие корни).
+            // (x - 1)(x - 1.0000001)
+            { "L50: Precision Stress (1 / ((x - 1) * (x - 1.0000001)))", x => 1 / ((x - 1) * (x - 1.0000001)) }
 
         };
 
