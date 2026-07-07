@@ -20,6 +20,7 @@ namespace RicisCalculusCore
     {
         public const double Epsilon = 1e-18;
         public const double RootTolerance = 1e-11;
+        public static int MaxTrigReductionDepth { get; set; } = 3;
     }
 
     public enum SingularityState { Standard, Zero, Infinity }
@@ -93,7 +94,7 @@ namespace RicisCalculusCore
     /// Заменяет все ParameterExpression с заданным именем и типом на целевой параметр.
     /// Работает по имени, а не по ссылке. Рекурсивно обрабатывает индексы сингулярностей.
     /// </summary>
-    internal class DeepParameterUnifier(ParameterExpression targetParam) : ExpressionVisitor
+    public class DeepParameterUnifier(ParameterExpression targetParam) : ExpressionVisitor
     {
         protected override Expression VisitParameter(ParameterExpression node)
         {
@@ -282,7 +283,10 @@ namespace RicisCalculusCore
             var reduced = TryReducePolynomials(num, den, param, xKey);
             if (reduced != null)
                 return Resolve(reduced, param, xKey);
-
+            // A11: раскрытие тригонометрических сингулярностей
+            var trigReduced = SingularityResolverTrigonometricExtensions.TryTrigonometricReduction(num, den, param, xKey);
+            if (trigReduced != null)
+                return Resolve(trigReduced, param, xKey);
             // A4: 0_F / 0_G → F/G (отношение индексов)
             if (num is ZeroExpression zNum && den is ZeroExpression zDen)
                 return Resolve(Expression.Divide(zNum.Index, zDen.Index), param, xKey);
