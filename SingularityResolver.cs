@@ -5,9 +5,8 @@
 ///
 /// Промышленная реализация согласно RICIS v7.7.
 /// </summary>
-using System;
-using System.Collections.Generic;
-using System.Linq;
+/// 
+
 using System.Linq.Expressions;
 
 namespace RicisCalculusCore
@@ -112,8 +111,9 @@ namespace RicisCalculusCore
             => Expression.MakeBinary(bin.NodeType, Resolve(bin.Left, param, xKey), Resolve(bin.Right, param, xKey));
 
         private static Expression ResolveUnary(UnaryExpression un, ParameterExpression param, double xKey)
-            => Expression.MakeUnary(un.NodeType, Resolve(un.Operand, param, xKey));
-
+        {
+            return Expression.MakeUnary(un.NodeType, Resolve(un.Operand, param, xKey), null!);
+        }
         private static Expression ResolveMethodCall(MethodCallExpression call, ParameterExpression param, double xKey)
         {
             var resolvedArgs = call.Arguments.Select(arg => Resolve(arg, param, xKey));
