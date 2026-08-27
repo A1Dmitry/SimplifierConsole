@@ -17,15 +17,17 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout SimplifierConsole
         uses: actions/checkout@v4
+        with:
+          path: SimplifierConsole
 
       - name: Checkout required Ricis.Core dependency
         uses: actions/checkout@v4
         with:
           repository: A1Dmitry/Ricis.Core
           ref: bdc03b6b78c785c6ceaa9063978bd952b50e5326
-          path: ../Ricis.Core
+          path: Ricis.Core
           fetch-depth: 1
 
       - name: Setup .NET
@@ -34,7 +36,9 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore standalone project
+        working-directory: SimplifierConsole
         run: dotnet restore SimplifierConsole.csproj
 
       - name: Build standalone project
+        working-directory: SimplifierConsole
         run: dotnet build SimplifierConsole.csproj --configuration Release --no-restore
