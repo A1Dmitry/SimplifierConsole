@@ -20,6 +20,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout required Ricis.Core dependency
+        uses: actions/checkout@v4
+        with:
+          repository: A1Dmitry/Ricis.Core
+          ref: bdc03b6b78c785c6ceaa9063978bd952b50e5326
+          path: Ricis.Core
+          fetch-depth: 1
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
