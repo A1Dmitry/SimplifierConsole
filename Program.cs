@@ -219,17 +219,13 @@ internal class Program
 
                     Console.ResetColor();
 
-                    // Полярное представление RICIS-III для ∞_F и Monolith
-                    if (result is InfinityExpression inf)
+                    // Полярное представление RICIS-III для ∞_F и Monolith.
+                    // Generic pipeline preserves the enclosing lambda type, so
+                    // the indexed singularity can only occur in its expression body.
+                    if (result.Body is InfinityExpression infinity)
                     {
                         Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine(PolarConverter.ToPolarSector(inf, 8));
-                        Console.ResetColor();
-                    }
-                    else if (result is InfinityExpression mono)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine(PolarConverter.ToPolarSector(mono, 8));
+                        Console.WriteLine(PolarConverter.ToPolarSector(infinity, 8));
                         Console.ResetColor();
                     }
                 }
