@@ -25,8 +25,8 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore SimplifierConsole.sln
+      - name: Restore standalone project
+        run: dotnet restore SimplifierConsole.csproj
 
-      - name: Build
-        run: dotnet build SimplifierConsole.sln --configuration Release --no-restore
+      - name: Build standalone project
+        run: dotnet build SimplifierConsole.csproj --configuration Release --no-restore
